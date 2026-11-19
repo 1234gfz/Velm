@@ -1,0 +1,443 @@
+{
+  "fog.density": {
+    "value": 1,
+    "enabled": false
+  },
+  "fog.maxopacity": {
+    "value": 1,
+    "enabled": false
+  },
+  "fog.start": {
+    "value": 5000,
+    "enabled": false
+  },
+  "fog.extinction": {
+    "value": 0.9,
+    "enabled": false
+  },
+  "fog.heightfall": {
+    "value": 0.08,
+    "enabled": false
+  },
+  "fog.scatter": {
+    "value": 0.3,
+    "enabled": false
+  },
+  "fog.voldist": {
+    "value": 10000,
+    "enabled": false
+  },
+  "fog.vstart": {
+    "value": 1500,
+    "enabled": false
+  },
+  "fog.vnearfade": {
+    "value": 5000,
+    "enabled": false
+  },
+  "img.bloom": {
+    "value": 1.5,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.bloomthr": {
+    "value": 0.5,
+    "enabled": false,
+    "mode": "offset",
+    "ratio": 100,
+    "offset": 0.5
+  },
+  "img.bloomsize": {
+    "value": 64,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.bloommethod": {
+    "value": 0,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.bloompfmax": {
+    "value": 15000,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.ca": {
+    "value": 0,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.flare": {
+    "value": 0,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.grain": {
+    "value": 0,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.vignette": {
+    "value": 0.6,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.mblur": {
+    "value": 0.5,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.temp": {
+    "value": 6500,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "sun.intensity": {
+    "value": 0.7,
+    "enabled": false
+  },
+  "gi.bias": {
+    "value": 0.4,
+    "enabled": false,
+    "mode": "offset",
+    "ratio": 100,
+    "offset": 0.4
+  },
+  "gi.evmin": {
+    "value": -13,
+    "enabled": false,
+    "mode": "offset",
+    "ratio": 100,
+    "offset": -3
+  },
+  "gi.evmax": {
+    "value": 20,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.evup": {
+    "value": 5,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.evdown": {
+    "value": 1.5,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.evmode": {
+    "value": 0,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.lowpct": {
+    "value": 6,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.highpct": {
+    "value": 93,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.histmin": {
+    "value": -12,
+    "enabled": false,
+    "mode": "offset",
+    "ratio": 100,
+    "offset": -4
+  },
+  "gi.histmax": {
+    "value": 4,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.calconst": {
+    "value": 18,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.localexp": {
+    "value": 1,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.locgray": {
+    "value": 0,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.lehi": {
+    "value": 0.65,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.lelo": {
+    "value": 0.5,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.ledetail": {
+    "value": 1,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.leblend": {
+    "value": 0.6,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.lekernel": {
+    "value": 50,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.lehit": {
+    "value": 0,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.lelot": {
+    "value": 0,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.localexpmode": {
+    "value": 0,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.lehits": {
+    "value": 1,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.lelos": {
+    "value": 1,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.tonecurve": {
+    "value": 1,
+    "enabled": true,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.filmslope": {
+    "value": 1,
+    "enabled": true,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.filmshoulder": {
+    "value": 0.08,
+    "enabled": true,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.filmtoe": {
+    "value": 0.33,
+    "enabled": true,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.filmblackclip": {
+    "value": 0,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.filmwhiteclip": {
+    "value": 0,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.expandgamut": {
+    "value": 1,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.gradingintensity": {
+    "value": 1,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.whitetint": {
+    "value": 0,
+    "enabled": false,
+    "mode": "ratio",
+    "ratio": 75,
+    "offset": 0
+  },
+  "img.bluecorrection": {
+    "value": 0.6,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.scenecolortint": {
+    "value": [
+      1,
+      1,
+      1
+    ],
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.tintShadow": {
+    "value": [
+      1,
+      1,
+      1
+    ],
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.tintHigh": {
+    "value": [
+      1.172,
+      1.053,
+      0.921
+    ],
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.sats": {
+    "value": 1,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.sath": {
+    "value": 1,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.conts": {
+    "value": 1,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "img.conth": {
+    "value": 1,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.skyleak": {
+    "value": 1,
+    "enabled": false,
+    "mode": "ratio",
+    "ratio": 0,
+    "offset": 0
+  },
+  "gi.skyleakdist": {
+    "value": 1000,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.lumenboost": {
+    "value": 1.8,
+    "enabled": false,
+    "mode": "abs",
+    "ratio": 100,
+    "offset": 0
+  },
+  "gi.ao": {
+    "value": 0.25,
+    "enabled": false,
+    "mode": "ratio",
+    "ratio": 50,
+    "offset": 0
+  },
+  "res.mode": {
+    "value": "none",
+    "enabled": false
+  }
+}
