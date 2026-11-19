@@ -1,0 +1,32 @@
+# 构建产物
+bin/
+obj/
+_build/
+_build_out/
+dist/*
+!dist/.gitkeep
+
+# 依赖 / 工具缓存
+node_modules/
+tools/_lua_dist/
+tools/_sim_bundle.lua
+tools/package-lock.json
+
+# 本地/个人/临时
+_renodx_test/
+_hangwatch/
+_deploy_backup/
+*.user
+*.suo
+.vs/
+.idea/
+
+# 日志
+*.log
+
+# 游戏文件绝不入库
+*.pak
+*.ucas
+*.utoc
+*.dll
+*.exe
