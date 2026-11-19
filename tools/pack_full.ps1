@@ -1,13 +1,7 @@
-﻿# 组装“玩家发布包”：Velm\ (管理器 + 安装说明 + payload\模组)。
-# 目录布局：
-#   _release\Velm\PBZModManager.exe        ← 玩家双击这个
+﻿# 组装“玩家发布包”：Velm\（管理器 + mod 本体 + 说明，管理器与 mod 并列）。
+#   _release\Velm\Manager\PBZModManager.exe       ← 玩家双击这个
+#   _release\Velm\Mod\PBZFog\ + ue4ss\ + dwmapi.dll  ← mod 本体（管理器自动装到游戏）
 #   _release\Velm\安装说明.txt / LICENSE / VERSION / CHANGELOG.md
-#   _release\Velm\payload\PBZFog\...        ← 模组（管理器自动装到游戏）
-#   _release\Velm\payload\ue4ss\ + dwmapi.dll  ← 随包自带 UE4SS（可选）
-# 用法：
-#   powershell -ExecutionPolicy Bypass -File tools\pack_full.ps1
-#   ... -WithUE4SS -Zip      # 带 UE4SS 并打 zip（zip 顶层即 Velm\）
-#   ... -SelfContained       # 自包含（需联网还原运行时包）
 param(
     [string]$Out = '',
     [switch]$SelfContained,
@@ -22,8 +16,10 @@ $ver = (Get-Content (Join-Path $repo 'VERSION') -ErrorAction SilentlyContinue | 
 Write-Host "版本 $ver -> $Out\Velm  (自包含=$([bool]$SelfContained))" -ForegroundColor Cyan
 if (Test-Path $Out) { Remove-Item $Out -Recurse -Force }
 $Pkg = Join-Path $Out 'Velm'
-$payload = Join-Path $Pkg 'payload'
-New-Item -ItemType Directory -Path $payload -Force | Out-Null
+$mgr = Join-Path $Pkg 'Manager'
+$mod = Join-Path $Pkg 'Mod'
+New-Item -ItemType Directory -Path $mgr -Force | Out-Null
+New-Item -ItemType Directory -Path (Join-Path $mod 'PBZFog') -Force | Out-Null
 
 function Publish-App($proj, $dst) {
     if ($SelfContained) {
@@ -34,19 +30,19 @@ function Publish-App($proj, $dst) {
     if ($LASTEXITCODE -ne 0) { throw "publish 失败: $proj ($LASTEXITCODE)" }
 }
 
-Write-Host "发布面板 -> payload\PBZFog\PBZTweaker ..." -ForegroundColor Yellow
-Publish-App (Join-Path $repo 'panel\PBZTweaker') (Join-Path $payload 'PBZFog\PBZTweaker')
-Write-Host "发布管理器(窗口版) -> Velm\ 根 ..." -ForegroundColor Yellow
-Publish-App (Join-Path $repo 'manager\PBZModManagerGui') $Pkg
+Write-Host "发布面板 -> Mod\PBZFog\PBZTweaker ..." -ForegroundColor Yellow
+Publish-App (Join-Path $repo 'panel\PBZTweaker') (Join-Path $mod 'PBZFog\PBZTweaker')
+Write-Host "发布管理器(窗口版) -> Manager\ ..." -ForegroundColor Yellow
+Publish-App (Join-Path $repo 'manager\PBZModManagerGui') $mgr
 Get-ChildItem $Pkg -Recurse -Filter *.pdb -File -ErrorAction SilentlyContinue | Remove-Item -Force
 
 Write-Host "复制模组脚本 + 参数表 ..." -ForegroundColor Yellow
-robocopy (Join-Path $repo 'lua\PBZFog\Scripts') (Join-Path $payload 'PBZFog\Scripts') /E /NFL /NDL /NJH /NJS /NP | Out-Null
-Copy-Item (Join-Path $repo 'lua\PBZFog\pbz_tweaker.json') (Join-Path $payload 'PBZFog\pbz_tweaker.json') -Force
+robocopy (Join-Path $repo 'lua\PBZFog\Scripts') (Join-Path $mod 'PBZFog\Scripts') /E /NFL /NDL /NJH /NJS /NP | Out-Null
+Copy-Item (Join-Path $repo 'lua\PBZFog\pbz_tweaker.json') (Join-Path $mod 'PBZFog\pbz_tweaker.json') -Force
 $presetJson = Join-Path $repo 'lua\PBZFog\pbz_presets.json'
-if (Test-Path $presetJson) { Copy-Item $presetJson (Join-Path $payload 'PBZFog\pbz_presets.json') -Force }
+if (Test-Path $presetJson) { Copy-Item $presetJson (Join-Path $mod 'PBZFog\pbz_presets.json') -Force }
 $langDir = Join-Path $repo 'lua\PBZFog\lang'
-if (Test-Path $langDir) { robocopy $langDir (Join-Path $payload 'PBZFog\lang') /E /NFL /NDL /NJH /NJS /NP | Out-Null }
+if (Test-Path $langDir) { robocopy $langDir (Join-Path $mod 'PBZFog\lang') /E /NFL /NDL /NJH /NJS /NP | Out-Null }
 
 Write-Host "复制说明 / 许可 ..." -ForegroundColor Yellow
 foreach ($f in @('LICENSE', 'CHANGELOG.md', 'VERSION')) {
@@ -60,10 +56,10 @@ if ($WithUE4SS) {
     if (Test-Path $v) {
         Write-Host "打包 UE4SS ..." -ForegroundColor Yellow
         $inner = Join-Path $v 'ue4ss'
-        if (Test-Path $inner) { robocopy $inner (Join-Path $payload 'ue4ss') /E /NFL /NDL /NJH /NJS /NP | Out-Null }
-        else { robocopy $v (Join-Path $payload 'ue4ss') /E /NFL /NDL /NJH /NJS /NP | Out-Null }
+        if (Test-Path $inner) { robocopy $inner (Join-Path $mod 'ue4ss') /E /NFL /NDL /NJH /NJS /NP | Out-Null }
+        else { robocopy $v (Join-Path $mod 'ue4ss') /E /NFL /NDL /NJH /NJS /NP | Out-Null }
         $proxy = Join-Path $v 'dwmapi.dll'
-        if (Test-Path $proxy) { Copy-Item $proxy (Join-Path $payload 'dwmapi.dll') -Force }
+        if (Test-Path $proxy) { Copy-Item $proxy (Join-Path $mod 'dwmapi.dll') -Force }
     } else {
         Write-Host "警告: 没找到 vendor\ue4ss，跳过 UE4SS（先跑 tools\fetch_ue4ss.ps1）" -ForegroundColor Yellow
     }

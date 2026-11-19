@@ -36,8 +36,9 @@ internal static class Program
                     {
                         var g = Manager.ResolveGame(o.Game, out _);
                         if (g == null) { Log("未找到游戏目录，请用 --game 指定。"); return 2; }
-                        var defSrc = Path.Combine(AppContext.BaseDirectory, "payload", Manager.ModName);
-                        if (!Directory.Exists(defSrc)) defSrc = Path.Combine(AppContext.BaseDirectory, Manager.ModName);
+                        var modRoot = Manager.FindModRoot();
+                        var defSrc = modRoot != null ? Path.Combine(modRoot, Manager.ModName)
+                                                     : Path.Combine(AppContext.BaseDirectory, Manager.ModName);
                         var src = o.Source ?? defSrc;
                         Log("== 安装/修复 PBZFog ==");
                         Log("游戏: " + g);

@@ -16,19 +16,13 @@ public partial class MainWindow : Window
             if (g != null) { GamePath.Text = g; AppendLog($"已自动检测到游戏（{how}）：{g}"); }
             else AppendLog("未自动检测到游戏，请手动选择（选中游戏的 platform\\steam 目录或其上级均可）。");
 
-            // 若本管理器旁自带 payload\ue4ss（发行包布局），默认勾选「使用自带 UE4SS」并填好路径
-            var payload = System.IO.Path.Combine(AppContext.BaseDirectory, "payload");
-            var bundledUe = System.IO.Path.Combine(payload, "ue4ss");
-            if (!System.IO.Directory.Exists(bundledUe))
+            // 发行包布局：Manager\ 与 Mod\ 并列；若找到 Mod\ue4ss 就默认用自带 UE4SS
+            var modRoot = Manager.FindModRoot();
+            if (modRoot != null && System.IO.Directory.Exists(System.IO.Path.Combine(modRoot, "ue4ss")))
             {
-                payload = AppContext.BaseDirectory;
-                bundledUe = System.IO.Path.Combine(payload, "ue4ss");
-            }
-            if (System.IO.Directory.Exists(bundledUe))
-            {
-                Ue4ssPath.Text = payload;
+                Ue4ssPath.Text = modRoot;
                 UseBundle.IsChecked = true;
-                AppendLog("已检测到随包自带 UE4SS，默认使用它（也可改选你自己的）。");
+                AppendLog("已检测到随包自带 UE4SS（" + System.IO.Path.Combine(modRoot, "ue4ss") + "），默认使用它。");
             }
         };
     }
@@ -80,8 +74,9 @@ public partial class MainWindow : Window
     private void Install_Click(object s, RoutedEventArgs e)
     {
         var g = GameDirOrNull(); if (g == null) return;
-        var src = System.IO.Path.Combine(AppContext.BaseDirectory, "payload", Manager.ModName);
-        if (!System.IO.Directory.Exists(src)) src = System.IO.Path.Combine(AppContext.BaseDirectory, Manager.ModName);
+        var modRoot = Manager.FindModRoot();
+        var src = modRoot != null ? System.IO.Path.Combine(modRoot, Manager.ModName)
+                                  : System.IO.Path.Combine(AppContext.BaseDirectory, Manager.ModName);
         string? ue = null;
         if (UseBundle.IsChecked == true)
         {

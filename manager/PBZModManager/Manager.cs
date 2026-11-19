@@ -206,8 +206,32 @@ public static class Manager
 
     public static string LocalVersion()
     {
-        try { var p = Path.Combine(AppContext.BaseDirectory, "VERSION"); if (File.Exists(p)) return File.ReadAllText(p).Trim(); } catch { }
+        foreach (var p in new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, "VERSION"),
+            Path.Combine(AppContext.BaseDirectory, "..", "VERSION"),
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "VERSION"),
+        })
+        {
+            try { if (File.Exists(p)) return File.ReadAllText(p).Trim(); } catch { }
+        }
         return "?";
+    }
+
+    // 找到“mod 本体”根目录：需含 PBZFog\。发行包布局 Manager\ 与 Mod\ 并列，故优先看上级目录。
+    public static string? FindModRoot()
+    {
+        var bd = AppContext.BaseDirectory.TrimEnd('\\', '/');
+        var bases = new[] { Path.GetFullPath(Path.Combine(bd, "..")), bd };
+        foreach (var b in bases)
+        {
+            foreach (var name in new[] { "Mod", "mod", "payload", "" })
+            {
+                var cand = string.IsNullOrEmpty(name) ? b : Path.Combine(b, name);
+                if (Directory.Exists(Path.Combine(cand, ModName))) return Path.GetFullPath(cand);
+            }
+        }
+        return null;
     }
 
     // 读取仓库里的最新版本号；proxy 形如 http://127.0.0.1:7897，可为空。失败抛异常。
