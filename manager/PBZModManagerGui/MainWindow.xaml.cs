@@ -15,6 +15,15 @@ public partial class MainWindow : Window
             var g = Manager.ResolveGame(null, out var how);
             if (g != null) { GamePath.Text = g; AppendLog($"已自动检测到游戏（{how}）：{g}"); }
             else AppendLog("未自动检测到游戏，请手动选择（选中游戏的 platform\\steam 目录或其上级均可）。");
+
+            // 若本管理器旁自带 ue4ss\（发行包布局），默认勾选「使用自带 UE4SS」并填好路径
+            var bundled = AppContext.BaseDirectory;
+            if (System.IO.Directory.Exists(System.IO.Path.Combine(bundled, "ue4ss")))
+            {
+                Ue4ssPath.Text = bundled;
+                UseBundle.IsChecked = true;
+                AppendLog("已检测到随包自带 UE4SS，默认使用它（也可改选你自己的）。");
+            }
         };
     }
 

@@ -74,6 +74,7 @@ Write-Host "完成: $($files.Count) 文件, $mb MB" -ForegroundColor Green
 if ($Zip) {
     $zipPath = Join-Path (Split-Path $Out -Parent) ("PBZVisualTweaker_v" + $ver + ".zip")
     if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
-    Compress-Archive -Path (Join-Path $Out '*') -DestinationPath $zipPath -Force
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    [System.IO.Compression.ZipFile]::CreateFromDirectory($Out, $zipPath, [System.IO.Compression.CompressionLevel]::Optimal, $false)
     Write-Host "已打包: $zipPath" -ForegroundColor Green
 }

@@ -37,3 +37,5 @@ vendor/
 manager.log
 manager/PBZModManager/_out/
 manager/**/_out/
+_user_presets_backup/
+PBZVisualTweaker_v*.zip
