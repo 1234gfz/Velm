@@ -1,4 +1,4 @@
--- 雾（handler = "fog"）与局部雾团（handler = "lfog"）。
+-- 雾（handler = "fog"）。
 --
 -- ★ 单一写入者原则在这里最重要。
 --
@@ -87,54 +87,6 @@ function fog.gameComponent()
         end
     end
     return best
-end
-
--- ---------------------------------------------------------------- 局部雾团
-
--- 场景里小范围飘动的雾是 Niagara 粒子（NS_Common_BossFog / NS_*_Fog）。
--- 只取前 600 个：全量扫场景在对象多的区域会明显卡顿。
--- 对象列表由 core.objects 事件维护；仅当 lfog 参数开启时才会走到这里。
-local niaList = nil
-local niaLast = nil
-
-local function getNiagara()
-    if niaList then return niaList end
-    local arr = objects.get("NiagaraComponent")
-    if #arr == 0 then return nil end
-    local hits = {}
-    for i = 1, math.min(#arr, 600) do
-        local okn, nm = pcall(function() return arr[i]:GetFullName() end)
-        if okn and nm and string.find(string.lower(nm), "fog") then
-            table.insert(hits, arr[i])
-        end
-    end
-    niaList = hits
-    log.once("lfog:scan", "局部雾团: 找到 " .. #hits .. " 个 Niagara")
-    return niaList
-end
-
-function fog.applyLocal(p)
-    local list = getNiagara()
-    if not list or #list == 0 then return end
-    if niaLast == p.value then return end
-    local want
-    if type(p.value) == "boolean" then want = p.value
-    else want = (tonumber(p.value) or 1) >= 0.5 end
-
-    local okCount = 0
-    for _, c in ipairs(list) do
-        -- SetVisibility 有两个参数 (bNewVisibility, bPropagateToChildren)，少传会直接报参数个数不对
-        local ok = pcall(function() c:SetVisibility(want, true) end)
-        if not ok then ok = pcall(function() c:SetHiddenInGame(not want, true) end) end
-        if not ok then ok = pcall(function() c.bHiddenInGame = not want end) end
-        if ok then okCount = okCount + 1 end
-    end
-    if okCount > 0 then
-        niaLast = p.value
-        log.info(string.format("局部雾团: 显示=%s 命中 %d/%d", tostring(want), okCount, #list))
-    else
-        log.once("lfog:fail", "局部雾团: 所有写法都失败")
-    end
 end
 
 -- ---------------------------------------------------------------- 一次性诊断

@@ -31,7 +31,7 @@
 
 ### 2.3 分组重排（「光照与色调」原 50 个，拆细）
 - 雾效：整体强度(`fog.density/maxopacity/start`) + 体积雾(`extinction/heightfall/scatter/voldist/vstart/vnearfade`)
-- 局部雾团：`lfog.visible`（并入雾效或单列，待定）
+- 局部雾团：已删除（`lfog.visible` 实测无效果）
 - 画面：泛光(`bloom/bloomthr/bloomsize/bloompfmax`) + 其他(`ca/flare/grain/vignette/mblur`)
 - 光照与色调 → 拆成：**白平衡**(`gi.temp`) / **阳光**(`sun.intensity`) / **曝光与测光** / **局部曝光** / **色调映射·胶片** / **色彩调色** / **环境光·遮蔽**
 - 分辨率（窗口）：`res.mode`

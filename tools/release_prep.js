@@ -17,6 +17,7 @@ const DROP_KEYS = new Set([
   'gi.lumengi',       // Lumen 最终聚集质量 —— 是降质量不是美化
   'gi.lumenscene',    // Lumen 场景光照质量 —— 同上
   'cam.fov',          // 相机 FOV —— 切镜头会被覆盖
+  'lfog.visible',     // 局部雾团 —— 实测无效果，删除
 ]);
 
 // —— 顶层调试字段（整段删除）——
@@ -54,9 +55,6 @@ const LAYOUT = [
   { name:'雾效', desc:'按百分比缩放游戏原本的雾强度，100% = 游戏原版。', subs:[
     ['整体强度', ['fog.density','fog.maxopacity','fog.start']],
     ['体积雾',   ['fog.extinction','fog.heightfall','fog.scatter','fog.voldist','fog.vstart','fog.vnearfade']],
-  ]},
-  { name:'局部雾团', desc:'场景里小范围飘动的雾是 Niagara 粒子（雾门、BOSS 房那种），可以整组关掉', subs:[
-    ['', ['lfog.visible']],
   ]},
   { name:'画面', desc:'直接写后处理体积的数值，绝对值不是倍率；改动要按右下角「应用」', subs:[
     ['泛光', ['img.bloom','img.bloomthr','img.bloomsize','img.bloommethod','img.bloompfmax']],

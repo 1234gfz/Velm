@@ -37,6 +37,8 @@ robocopy (Join-Path $repo 'lua\PBZFog\Scripts') (Join-Path $Out 'PBZFog\Scripts'
 Copy-Item (Join-Path $repo 'lua\PBZFog\pbz_tweaker.json') (Join-Path $Out 'PBZFog\pbz_tweaker.json') -Force
 $presetJson = Join-Path $repo 'lua\PBZFog\pbz_presets.json'
 if (Test-Path $presetJson) { Copy-Item $presetJson (Join-Path $Out 'PBZFog\pbz_presets.json') -Force }
+$langDir = Join-Path $repo 'lua\PBZFog\lang'
+if (Test-Path $langDir) { robocopy $langDir (Join-Path $Out 'PBZFog\lang') /E /NFL /NDL /NJH /NJS /NP | Out-Null }
 $presetDir = Join-Path $repo 'presets'
 if (Test-Path $presetDir) { robocopy $presetDir (Join-Path $Out 'presets') /E /NFL /NDL /NJH /NJS /NP | Out-Null }
 

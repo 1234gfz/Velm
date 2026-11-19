@@ -9,7 +9,6 @@
     "fog.voldist": 10000,
     "fog.vstart": 0,
     "fog.vnearfade": 0,
-    "lfog.visible": true,
     "img.bloom": 0.675,
     "img.bloomthr": -1,
     "img.bloomsize": 64,

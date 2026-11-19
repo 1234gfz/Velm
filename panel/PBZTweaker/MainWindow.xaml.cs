@@ -21,6 +21,10 @@ namespace PBZTweaker
         private static readonly string JsonPath = ResolveJsonPath();
         private static readonly string PresetPath =
             Path.Combine(Path.GetDirectoryName(JsonPath) ?? ".", "pbz_presets.json");
+        private static readonly string UiStatePath =
+            Path.Combine(Path.GetDirectoryName(JsonPath) ?? ".", "pbz_ui.json");
+        private static readonly string EnLangPath =
+            Path.Combine(Path.GetDirectoryName(JsonPath) ?? ".", "lang", "en.json");
 
         private const double DesignHeight = 800;
         private const double EdgeMargin = 24;
@@ -43,6 +47,9 @@ namespace PBZTweaker
         private int _paramCount;
         private bool _loadingPresets;
         private readonly Dictionary<string, bool> _collapsed = new Dictionary<string, bool>();
+        private string _lang = "zh";
+        private JsonObject _langMap = null;
+        private bool _langReady;
 
 
         private IntPtr _hwnd = IntPtr.Zero;
@@ -137,6 +144,76 @@ namespace PBZTweaker
             return Path.Combine(AppContext.BaseDirectory, "pbz_tweaker.json");
         }
 
+        // ---------------------------------------------------------- 界面语言（中/英）
+        private void LoadLang()
+        {
+            _lang = "zh"; _langMap = null;
+            try
+            {
+                if (File.Exists(UiStatePath))
+                {
+                    var o = JsonNode.Parse(File.ReadAllText(UiStatePath)) as JsonObject;
+                    if (o?["lang"] is JsonValue v) _lang = v.GetValue<string>();
+                }
+            }
+            catch { }
+            if (_lang == "en")
+            {
+                try { if (File.Exists(EnLangPath)) _langMap = JsonNode.Parse(File.ReadAllText(EnLangPath)) as JsonObject; } catch { }
+                if (_langMap == null) _lang = "zh";
+            }
+            try { if (LangBox != null) LangBox.SelectedIndex = (_lang == "en") ? 1 : 0; } catch { }
+        }
+
+        private void SaveLang()
+        {
+            try
+            {
+                var o = new JsonObject { ["lang"] = _lang };
+                File.WriteAllText(UiStatePath, o.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+            }
+            catch { }
+        }
+
+        private void Lang_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_langReady || LangBox == null) return;
+            _lang = LangBox.SelectedIndex == 1 ? "en" : "zh";
+            if (_lang == "en")
+            {
+                try { _langMap = File.Exists(EnLangPath) ? (JsonNode.Parse(File.ReadAllText(EnLangPath)) as JsonObject) : null; }
+                catch { _langMap = null; }
+                if (_langMap == null) { _lang = "zh"; LangBox.SelectedIndex = 0; }
+            }
+            SaveLang();
+            try { BuildUi(true); } catch { }
+        }
+
+        private string LocGroup(string zh)
+        {
+            if (_lang == "en" && _langMap?["groups"] is JsonObject m && m[zh] is JsonValue v) return v.GetValue<string>();
+            return zh;
+        }
+        private string LocSub(string zh)
+        {
+            if (_lang == "en" && _langMap?["subs"] is JsonObject m && m[zh] is JsonValue v) return v.GetValue<string>();
+            return zh;
+        }
+        private string LocLabel(JsonObject p, string zh)
+        {
+            var key = p["key"]?.GetValue<string>();
+            if (_lang == "en" && key != null && _langMap?["params"] is JsonObject m && m[key] is JsonObject en && en["label"] is JsonValue v)
+                return v.GetValue<string>();
+            return zh;
+        }
+        private string LocHint(JsonObject p, string zh)
+        {
+            var key = p["key"]?.GetValue<string>();
+            if (_lang == "en" && key != null && _langMap?["params"] is JsonObject m && m[key] is JsonObject en && en["hint"] is JsonValue v)
+                return v.GetValue<string>();
+            return zh;
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -150,6 +227,8 @@ namespace PBZTweaker
                 try { PinPriorityEnabled = GetBool(_root, "pinPriority", true); } catch { }
             }
             LoadPresets();
+            LoadLang();
+            _langReady = true;
             BuildUi();
             StartWatcher();
 
@@ -908,7 +987,8 @@ namespace PBZTweaker
             if (reloadFromDisk || _root == null) LoadJson();
             if (_root == null) return;
 
-            TitleText.Text = _root["title"]?.GetValue<string>() ?? "影之刃零 · 调参器";
+            TitleText.Text = _lang == "en" ? "Velm · Tweaker" : (_root["title"]?.GetValue<string>() ?? "Velm · 调参器");
+            if (SubText != null) SubText.Text = _lang == "en" ? "Press F8 to open" : "F8 呼出面板";
 
             _paramCount = 0;
             if (_root["groups"] is not JsonArray groups) { Status.Text = "参数表里没有 groups"; return; }
@@ -916,7 +996,7 @@ namespace PBZTweaker
             foreach (var gnode in groups)
             {
                 if (gnode is not JsonObject g) continue;
-                var name = g["name"]?.GetValue<string>() ?? "未命名";
+                var name = LocGroup(g["name"]?.GetValue<string>() ?? "未命名");
                 var desc = g["desc"]?.GetValue<string>();
 
                 Panel.Children.Add(new TextBlock
@@ -959,7 +1039,7 @@ namespace PBZTweaker
                                 if (q is JsonObject qo && !GetBool(qo, "advanced", false)
                                     && ((qo["sub"]?.GetValue<string>()) ?? "") == sub) cnt++;
                             subHost = new StackPanel();
-                            Panel.Children.Add(MakeSubHeader(sub, cnt, subHost));
+                            Panel.Children.Add(MakeSubHeader(LocSub(sub), cnt, subHost));
                             Panel.Children.Add(subHost);
                         }
                     }
@@ -1010,8 +1090,8 @@ namespace PBZTweaker
         private Border BuildRow(JsonObject p)
         {
             var type = p["type"]?.GetValue<string>() ?? "float";
-            var label = p["label"]?.GetValue<string>() ?? p["key"]?.GetValue<string>() ?? "?";
-            var hint = p["hint"]?.GetValue<string>();
+            var label = LocLabel(p, p["label"]?.GetValue<string>() ?? p["key"]?.GetValue<string>() ?? "?");
+            var hint = LocHint(p, p["hint"]?.GetValue<string>());
             bool on = GetBool(p, "enabled", false);
 
             var wrap = new Border

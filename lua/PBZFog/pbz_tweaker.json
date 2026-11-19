@@ -154,24 +154,6 @@
       ]
     },
     {
-      "name": "局部雾团",
-      "desc": "场景里小范围飘动的雾是 Niagara 粒子（雾门、BOSS 房那种），可以整组关掉",
-      "parameters": [
-        {
-          "key": "lfog.visible",
-          "label": "显示雾团",
-          "type": "bool",
-          "default": true,
-          "value": true,
-          "handler": "lfog",
-          "target": "visible",
-          "hint": "关掉后所有名字带 Fog 的粒子雾都不渲染",
-          "enabled": false,
-          "sub": ""
-        }
-      ]
-    },
-    {
       "name": "画面",
       "desc": "直接写后处理体积的数值，绝对值不是倍率；改动要按右下角「应用」",
       "parameters": [

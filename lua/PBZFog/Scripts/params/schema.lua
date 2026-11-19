@@ -78,9 +78,6 @@ local function dispatch(p)
         else
             ppH.apply(e)
         end
-    elseif h == "lfog" then
-        if p.enabled == false then return end
-        fogH.applyLocal(e)
     elseif h == "gus" then
         if p.enabled == false then return end
         gusH.apply(e)

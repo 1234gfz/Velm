@@ -6,7 +6,7 @@
 ## 格式
 ```json
 {
-  "预设名A": { "fog.density": 0.8, "img.bloom": 2.0, "lfog.visible": true },
+  "预设名A": { "fog.density": 0.8, "img.bloom": 2.0, "img.vignette": 0.3 },
   "预设名B": { "fog.density": 1.0, "img.bloom": 0.675 }
 }
 ```
