@@ -55,11 +55,10 @@ local function dispatch(p)
     -- ignoreMaster=true 的参数（如分辨率/窗口类）不受总开关影响。
     local e = p
     if (not master and not p.ignoreMaster) or p.enabled == false then
-        if p["default"] ~= nil then
-            e = {}
-            for k, v in pairs(p) do e[k] = v end
-            e.value = p["default"]
-        end
+        e = {}
+        for k, v in pairs(p) do e[k] = v end
+        e.enabled = false            -- 关键：总开关关 / 单项关，都按"撤销覆盖(还原原值)"处理
+        if p["default"] ~= nil then e.value = p["default"] end
     end
 
     if h == "fog" then
@@ -194,6 +193,8 @@ function schema.poll(force)
     for _, p in ipairs(params) do
         if p.handler == "pp" then
             local val = p.value
+            -- 总开关关掉（且不是 ignoreMaster 项）等价于该项 enabled=false → pp 会还原原值。
+            local effEnabled = (p.enabled ~= false) and (master or p.ignoreMaster)
             if (not master and not p.ignoreMaster) and p["default"] ~= nil then val = p["default"] end
 
             -- 模式兜底：不认识的、或该参数没开放这种模式的，一律退回绝对。
@@ -212,7 +213,7 @@ function schema.poll(force)
                 target = p.target,
                 value = val,
                 component = p.component,
-                enabled = (p.enabled ~= false),
+                enabled = effEnabled,
                 mode = m,
                 ratio = tonumber(p.ratio) or 100,
                 offset = tonumber(p.offset) or 0,
