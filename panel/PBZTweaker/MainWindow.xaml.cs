@@ -82,7 +82,9 @@ namespace PBZTweaker
 
         private const int HOTKEY_ID = 0xB0B;
         private const int WM_HOTKEY = 0x0312;
-        private const uint VK_F8 = 0x77;
+        private uint _hotkeyMods = 0;
+        private uint _hotkeyVk = 0x77;      // 默认 F8
+        private string _hotkeyName = "F8";
         private const int GWL_EXSTYLE = -20;
         private const int WS_EX_TRANSPARENT = 0x00000020;
         private const int WS_EX_NOACTIVATE = 0x08000000;
@@ -303,19 +305,21 @@ namespace PBZTweaker
             ApplyInteractiveStyle(false);
             var src = HwndSource.FromHwnd(_hwnd);
             src?.AddHook(WndProc);
-            // 注册失败时 RegisterHotKey 返回 false，之前没检查，
-            // 表现就是「按 F8 完全没反应」且日志里什么都没有。
-            var hkOk = RegisterHotKey(_hwnd, HOTKEY_ID, 0, VK_F8);
+            // 注册失败时 RegisterHotKey 返回 false，之前没检查，表现就是「按键完全没反应」且日志为空。
+            // 支持组合键：从 pbz_tweaker.json 的 "hotkey" 读取（如 "F8"、"Ctrl+F8"、"Ctrl+Shift+F8"）。
+            LoadHotkeyFromJson();
+            var hkOk = RegisterHotKey(_hwnd, HOTKEY_ID, _hotkeyMods, _hotkeyVk);
             try
             {
                 var logPath = System.IO.Path.Combine(
                     System.IO.Path.GetDirectoryName(JsonPath) ?? ".", "panel_hotkey.log");
                 System.IO.File.AppendAllText(logPath,
-                    string.Format("{0} hotkey F8 register={1} hwnd={2} err={3}\n",
-                        DateTime.Now.ToString("HH:mm:ss"), hkOk, _hwnd,
+                    string.Format("{0} hotkey {1} mods=0x{2:X} vk=0x{3:X} register={4} hwnd={5} err={6}\n",
+                        DateTime.Now.ToString("HH:mm:ss"), _hotkeyName, _hotkeyMods, _hotkeyVk, hkOk, _hwnd,
                         hkOk ? 0 : System.Runtime.InteropServices.Marshal.GetLastWin32Error()));
             }
             catch { }
+            try { SubText.Text = _hotkeyName + " 呼出面板"; } catch { }
         }
 
         // ------------------------------------------------------------ 托盘图标
@@ -324,11 +328,12 @@ namespace PBZTweaker
         // 这个程序在哪、热键失效时也没法操作。托盘图标就是它唯一的「门牌」。
         private void InitTrayIcon()
         {
+            LoadHotkeyFromJson();
             try
             {
                 _tray = new System.Windows.Forms.NotifyIcon
                 {
-                    Text = "影之刃零 雾效调参器（F8 呼出面板）",
+                    Text = "影之刃零 调参器（" + _hotkeyName + " 呼出面板）",
                     Visible = true,
                     Icon = MakeTrayIcon(),
                 };
@@ -346,6 +351,20 @@ namespace PBZTweaker
                 var reloadItem = new System.Windows.Forms.ToolStripMenuItem("重新读取参数表");
                 reloadItem.Click += (s, e) => Dispatcher.Invoke(() => { LoadJson(); BuildUi(); });
                 m.Items.Add(reloadItem);
+
+                var hkItem = new System.Windows.Forms.ToolStripMenuItem("快捷键（当前：" + _hotkeyName + "）");
+                foreach (var preset in HotkeyPresets)
+                {
+                    var label = preset.label;
+                    var it = new System.Windows.Forms.ToolStripMenuItem(label);
+                    it.Click += (s, e) => Dispatcher.Invoke(() =>
+                    {
+                        SetHotkey(label);
+                        hkItem.Text = "快捷键（当前：" + _hotkeyName + "）";
+                    });
+                    hkItem.DropDownItems.Add(it);
+                }
+                m.Items.Add(hkItem);
 
                 m.Items.Add(new System.Windows.Forms.ToolStripSeparator());
 
@@ -698,7 +717,92 @@ namespace PBZTweaker
             ApplyInteractiveStyle(false);
             if (_gameHwnd == IntPtr.Zero) _gameHwnd = FindGameWindow();
             if (_gameHwnd != IntPtr.Zero) { try { SetForegroundWindow(_gameHwnd); } catch { } }
-            SubText.Text = "F8 呼出面板";
+            SubText.Text = _hotkeyName + " 呼出面板";
+        }
+
+        // ------------------------------------------------------------ 热键（可配置，支持 Ctrl/Alt/Shift 组合）
+        private static readonly (uint mods, string label)[] HotkeyPresets = new (uint, string)[]
+        {
+            (0, "F8"), (0x0002, "Ctrl+F8"), (0x0001, "Alt+F8"), (0x0004, "Shift+F8"),
+            (0x0002|0x0001, "Ctrl+Alt+F8"), (0x0002|0x0004, "Ctrl+Shift+F8"), (0x0004|0x0001, "Shift+Alt+F8"),
+            (0, "F6"), (0, "F7"), (0, "F9"), (0, "F10"), (0, "F11"), (0, "F12"),
+        };
+
+        private static uint KeyToVk(string k)
+        {
+            k = (k ?? "").Trim().ToUpperInvariant();
+            if (k.Length >= 2 && k[0] == 'F' && int.TryParse(k.Substring(1), out var n) && n >= 1 && n <= 24)
+                return (uint)(0x70 + n - 1);
+            if (k.Length == 1)
+            {
+                char c = k[0];
+                if (c >= 'A' && c <= 'Z') return (uint)c;
+                if (c >= '0' && c <= '9') return (uint)c;
+            }
+            switch (k)
+            {
+                case "SPACE": return 0x20;
+                case "INSERT": return 0x2D; case "DELETE": return 0x2E;
+                case "HOME": return 0x24; case "END": return 0x23;
+                case "PGUP": return 0x21; case "PGDN": return 0x22;
+                case "TAB": return 0x09; case "ENTER": return 0x0D;
+            }
+            return 0x77; // F8
+        }
+
+        private static void ParseHotkey(string s, out uint mods, out uint vk, out string name)
+        {
+            mods = 0; string key = "F8";
+            foreach (var raw in (s ?? "").ToUpperInvariant().Split('+'))
+            {
+                var p = raw.Trim(); if (p.Length == 0) continue;
+                if (p == "CTRL" || p == "CONTROL") mods |= 0x0002;
+                else if (p == "ALT") mods |= 0x0001;
+                else if (p == "SHIFT") mods |= 0x0004;
+                else if (p == "WIN") mods |= 0x0008;
+                else key = p;
+            }
+            vk = KeyToVk(key);
+            var parts = new System.Collections.Generic.List<string>();
+            if ((mods & 0x0002) != 0) parts.Add("Ctrl");
+            if ((mods & 0x0001) != 0) parts.Add("Alt");
+            if ((mods & 0x0004) != 0) parts.Add("Shift");
+            if ((mods & 0x0008) != 0) parts.Add("Win");
+            parts.Add(key.ToUpperInvariant());
+            name = string.Join("+", parts);
+        }
+
+        private void LoadHotkeyFromJson()
+        {
+            try
+            {
+                if (File.Exists(JsonPath))
+                {
+                    var t = File.ReadAllText(JsonPath);
+                    var mm = System.Text.RegularExpressions.Regex.Match(t, "\"hotkey\"\\s*:\\s*\"([^\"]*)\"");
+                    if (mm.Success) { ParseHotkey(mm.Groups[1].Value, out _hotkeyMods, out _hotkeyVk, out _hotkeyName); return; }
+                }
+            }
+            catch { }
+            ParseHotkey("F8", out _hotkeyMods, out _hotkeyVk, out _hotkeyName);
+        }
+
+        private void SetHotkey(string spec)
+        {
+            ParseHotkey(spec, out var mods, out var vk, out var name);
+            try { UnregisterHotKey(_hwnd, HOTKEY_ID); } catch { }
+            bool ok; try { ok = RegisterHotKey(_hwnd, HOTKEY_ID, mods, vk); } catch { ok = false; }
+            if (!ok)
+            {
+                try { RegisterHotKey(_hwnd, HOTKEY_ID, _hotkeyMods, _hotkeyVk); } catch { }
+                LogStartup("热键切换失败: " + name);
+                return;
+            }
+            _hotkeyMods = mods; _hotkeyVk = vk; _hotkeyName = name;
+            try { if (_root != null) { _root["hotkey"] = JsonValue.Create(name); SaveJson(); } } catch { }
+            try { SubText.Text = name + " 呼出面板"; } catch { }
+            try { if (_tray != null) _tray.Text = "影之刃零 调参器（" + name + " 呼出面板）"; } catch { }
+            LogStartup("热键已设为 " + name);
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)

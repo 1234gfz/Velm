@@ -44,6 +44,8 @@
                 <CheckBox x:Name="UseOwn" Content="使用我已安装的 UE4SS" VerticalAlignment="Center" Margin="0,0,18,0" Checked="UseOwn_Checked"/>
                 <CheckBox x:Name="ForceProxy" Content="允许与其它注入代理 DLL 冲突（--force-proxy）" VerticalAlignment="Center"/>
             </StackPanel>
+            <TextBlock TextWrapping="Wrap" Foreground="#B85C00" Margin="0,6,0,0" FontSize="12"
+                       Text="提示：《影之刃零》只能识别随包自带的特定 UE4SS 构建（v3.0.1 Beta f885e8d2）。请保持「使用自带 UE4SS」；官方 v3.0.1 发行版装上去会显示成功，但游戏里注入不了、F8 无反应。"/>
             <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                 <TextBlock Text="更新检查代理(可选):" VerticalAlignment="Center" Margin="0,0,6,0" Foreground="#7C766E"/>
                 <TextBox x:Name="ProxyBox" Width="180" VerticalAlignment="Center" ToolTip="如 http://127.0.0.1:7897；国内访问 GitHub 需要时填"/>
