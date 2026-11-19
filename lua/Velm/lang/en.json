@@ -10,6 +10,7 @@
     "切换这个参数的写法：绝对 / 比例（原值 × %） / 偏移（原值 + Δ）": "Switch mode: Absolute / Ratio (orig × %) / Offset (orig + Δ)",
     "显示": "Show", "隐藏": "Hide",
     "快捷键": "Hotkey",
+    "总开关": "Master", "无": "None",
     "退出程序": "Quit", "重新读取参数表": "Reload parameter table", "重新采样后处理原值": "Resample PP originals",
     "把游戏进程优先级锁为「高于正常」": "Lock game priority to Above Normal"
   },

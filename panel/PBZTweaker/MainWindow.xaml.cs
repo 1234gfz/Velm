@@ -87,6 +87,10 @@ namespace PBZTweaker
         private uint _hotkeyMods = 0;
         private uint _hotkeyVk = 0x77;      // 默认 F8
         private string _hotkeyName = "F8";
+        private const int HOTKEY_ID_MASTER = 0xB0C;   // 「整体效果」总开关的独立热键（默认空=不注册）
+        private uint _mhotMods = 0;
+        private uint _mhotVk = 0;
+        private string _mhotName = "";
         private const int GWL_EXSTYLE = -20;
         private const int WS_EX_TRANSPARENT = 0x00000020;
         private const int WS_EX_NOACTIVATE = 0x08000000;
@@ -244,6 +248,7 @@ namespace PBZTweaker
                 if (PresetApply != null) PresetApply.Content = Ui("应用");
                 if (RevertBtn != null) RevertBtn.Content = Ui("还原");
                 if (HotkeyLabel != null) HotkeyLabel.Text = Ui("快捷键");
+                if (MasterHotkeyLabel != null) MasterHotkeyLabel.Text = Ui("总开关");
                 if (ApplyBtn != null) ApplyBtn.Content = _dirty ? Ui("应用 •") : Ui("应用");
             }
             catch { }
@@ -342,6 +347,8 @@ namespace PBZTweaker
             // 支持组合键：从 pbz_tweaker.json 的 "hotkey" 读取（如 "F8"、"Ctrl+F8"、"Ctrl+Shift+F8"）。
             LoadHotkeyFromJson();
             var hkOk = RegisterHotKey(_hwnd, HOTKEY_ID, _hotkeyMods, _hotkeyVk);
+            LoadMasterHotkeyFromJson();
+            RegisterMasterHotkey();
             try
             {
                 var logPath = System.IO.Path.Combine(
@@ -822,6 +829,7 @@ namespace PBZTweaker
         }
 
         private bool _loadingHotkey;
+
         private void InitHotkeyBox()
         {
             try
@@ -834,6 +842,86 @@ namespace PBZTweaker
             }
             catch { }
             finally { _loadingHotkey = false; }
+            InitMhotBox();
+        }
+
+        private bool _loadingMhot;
+        private void LoadMasterHotkeyFromJson()
+        {
+            _mhotName = ""; _mhotMods = 0; _mhotVk = 0;
+            try
+            {
+                if (_root?["masterHotkey"] is JsonValue v)
+                {
+                    var s = v.GetValue<string>();
+                    if (!string.IsNullOrWhiteSpace(s)) ParseHotkey(s, out _mhotMods, out _mhotVk, out _mhotName);
+                }
+            }
+            catch { }
+        }
+        private void RegisterMasterHotkey()
+        {
+            try { UnregisterHotKey(_hwnd, HOTKEY_ID_MASTER); } catch { }
+            if (string.IsNullOrEmpty(_mhotName)) return;
+            bool ok = false;
+            try { ok = RegisterHotKey(_hwnd, HOTKEY_ID_MASTER, _mhotMods, _mhotVk); } catch { }
+            LogStartup("总开关热键 " + _mhotName + (ok ? " 注册成功" : " 注册失败"));
+            if (!ok)
+            {
+                _mhotName = ""; _mhotMods = 0; _mhotVk = 0;
+                try { if (_root != null) { _root["masterHotkey"] = JsonValue.Create(""); SaveJson(); } } catch { }
+            }
+        }
+        private void InitMhotBox()
+        {
+            try
+            {
+                _loadingMhot = true;
+                MasterHotkeyBox.Items.Clear();
+                MasterHotkeyBox.Items.Add(Ui("无"));
+                foreach (var p in HotkeyPresets) MasterHotkeyBox.Items.Add(p.label);
+                MasterHotkeyBox.SelectedItem = string.IsNullOrEmpty(_mhotName) ? Ui("无") : _mhotName;
+            }
+            catch { }
+            finally { _loadingMhot = false; }
+        }
+        private void Mhot_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loadingMhot) return;
+            var sel = MasterHotkeyBox.SelectedItem as string;
+            var spec = (sel == Ui("无") || string.IsNullOrEmpty(sel)) ? "" : sel;
+            try { if (_root != null) { _root["masterHotkey"] = JsonValue.Create(spec); SaveJson(); } } catch { }
+            if (string.IsNullOrEmpty(spec))
+            {
+                _mhotName = ""; _mhotMods = 0; _mhotVk = 0;
+                try { UnregisterHotKey(_hwnd, HOTKEY_ID_MASTER); } catch { }
+                LogStartup("总开关热键已关闭");
+            }
+            else
+            {
+                ParseHotkey(spec, out _mhotMods, out _mhotVk, out _mhotName);
+                RegisterMasterHotkey();
+                _loadingMhot = true;
+                try { MasterHotkeyBox.SelectedItem = string.IsNullOrEmpty(_mhotName) ? Ui("无") : _mhotName; } catch { }
+                _loadingMhot = false;
+            }
+        }
+        private void ToggleMasterByHotkey()
+        {
+            if (_root == null) return;
+            bool on = !MasterOn();
+            if (_masterReady) SetMaster(on);
+            else { _root["master"] = JsonValue.Create(on); SaveJson(); }
+            SyncMasterUi();
+            try
+            {
+                if (_tray != null)
+                    _tray.ShowBalloonTip(1200, "Velm 小维",
+                        on ? (_lang == "en" ? "Overall effect ON" : "整体效果：已开启")
+                           : (_lang == "en" ? "Overall effect OFF" : "整体效果：已关闭"),
+                        System.Windows.Forms.ToolTipIcon.None);
+            }
+            catch { }
         }
 
         private void Hotkey_Changed(object sender, SelectionChangedEventArgs e)
@@ -872,6 +960,12 @@ namespace PBZTweaker
                 if (_interactive && IsVisible) HideOverlay();
                 else ShowOverlay();
                 handled = true;
+            }
+            if (msg == WM_HOTKEY && wParam.ToInt32() == HOTKEY_ID_MASTER)
+            {
+                ToggleMasterByHotkey();
+                handled = true;
+                return IntPtr.Zero;
             }
             return IntPtr.Zero;
         }

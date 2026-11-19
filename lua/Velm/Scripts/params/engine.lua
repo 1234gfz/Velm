@@ -173,13 +173,20 @@ function engine.step(p, d)
         if d.mode == "ratio" then
             v = 1.0
         else
-            local dv = tonumber(p["default"])
-            if dv ~= nil then v = dv end
+            local b = base[p.key]
+            if b ~= nil then
+                v = b                       -- 优先还原到「首次改之前抓到的原值」
+            else
+                local dv = tonumber(p["default"])
+                if dv ~= nil then v = dv end
+            end
         end
     end
 
     local target
     if d.mode == "abs" then
+        -- 绝对值模式也记一份「首次改之前的原值」，关开关时才能精确还原回去。
+        if p.enabled ~= false and d.onDisable == "revert" and base[p.key] == nil then base[p.key] = cur end
         target = v
     elseif d.mode == "ratio" then
         -- 相对原值的比例模式（供「倍数类」效果使用，雾不走这条）。
@@ -305,6 +312,11 @@ world.onNewWorld("engine", function()
     -- 老实现也没有在 resetForNewWorld 里清 Engine.base，这里保持一致。
     engine.forgetCache()
     at = {}
+    -- 绝对值参数的「原值」按世界重新抓：换图后新组件是新对象，旧基准作废，
+    -- 下一轮会以新组件的当前值重新作为基准（否则会拿旧世界的原值去还原）。
+    for k, d in pairs(ROUTES) do
+        if d.mode == "abs" then base[k] = nil; written[k] = nil end
+    end
 end)
 
 return engine

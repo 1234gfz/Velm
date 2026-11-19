@@ -253,9 +253,14 @@
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <TextBlock x:Name="HotkeyLabel" Text="快捷键" FontSize="12" Foreground="#6E6960"
                                        VerticalAlignment="Center" Margin="0,0,6,0"/>
-                            <ComboBox x:Name="HotkeyBox" Width="108" Height="26" FontSize="13"
+                            <ComboBox x:Name="HotkeyBox" Width="104" Height="26" FontSize="13"
                                       VerticalAlignment="Center" SelectionChanged="Hotkey_Changed"
                                       ToolTip="呼出面板的快捷键（改了立即生效并保存）"/>
+                            <TextBlock x:Name="MasterHotkeyLabel" Text="总开关" FontSize="12" Foreground="#6E6960"
+                                       VerticalAlignment="Center" Margin="12,0,6,0"/>
+                            <ComboBox x:Name="MasterHotkeyBox" Width="104" Height="26" FontSize="13"
+                                      VerticalAlignment="Center" SelectionChanged="Mhot_Changed"
+                                      ToolTip="不开面板就切换「整体效果」总开关的快捷键（默认无）"/>
                         </StackPanel>
                     </Grid>
                 </StackPanel>

@@ -8,7 +8,7 @@ const { execFileSync } = require('child_process');
 
 const TOOLS = __dirname;
 const SCRIPTS = path.join(TOOLS, '..', 'lua', 'Velm', 'Scripts');
-const CFG = path.join(TOOLS, '..', 'lua', 'Velm', 'pbz_tweaker.json');
+const CFG = path.join(TOOLS, 'fixtures', 'pbz_tweaker.sim.json');
 
 function walk(dir, out, base) {
     for (const e of fs.readdirSync(dir, { withFileTypes: true })) {

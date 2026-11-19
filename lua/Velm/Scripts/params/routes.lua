@@ -34,23 +34,23 @@ return {
                            setter = "SetFogDensity", mode = "ratio", boot = 0.03,
                            hookManaged = true },
     ["fog.extinction"] = { cls = "ExponentialHeightFogComponent", prop = "VolumetricFogExtinctionScale",
-                           setter = "SetVolumetricFogExtinctionScale", mode = "ratio" },
+                           setter = "SetVolumetricFogExtinctionScale", mode = "ratio", onDisable = "revert" },
     ["fog.maxopacity"] = { cls = "ExponentialHeightFogComponent", prop = "FogMaxOpacity",
-                           setter = "SetFogMaxOpacity", mode = "ratio", clamp = 1.0 },
+                           setter = "SetFogMaxOpacity", mode = "ratio", clamp = 1.0, onDisable = "revert" },
     ["fog.start"]      = { cls = "ExponentialHeightFogComponent", prop = "StartDistance",
-                           setter = "SetStartDistance", mode = "abs" },
+                           setter = "SetStartDistance", mode = "abs", onDisable = "revert" },
     ["fog.heightfall"] = { cls = "ExponentialHeightFogComponent", prop = "FogHeightFalloff",
-                           setter = "SetFogHeightFalloff", mode = "abs" },
+                           setter = "SetFogHeightFalloff", mode = "abs", onDisable = "revert" },
     ["fog.scatter"]    = { cls = "ExponentialHeightFogComponent", prop = "VolumetricFogScatteringDistribution",
-                           setter = "SetVolumetricFogScatteringDistribution", mode = "abs" },
+                           setter = "SetVolumetricFogScatteringDistribution", mode = "abs", onDisable = "revert" },
     ["fog.voldist"]    = { cls = "ExponentialHeightFogComponent", prop = "VolumetricFogDistance",
-                           setter = "SetVolumetricFogDistance", mode = "abs" },
+                           setter = "SetVolumetricFogDistance", mode = "abs", onDisable = "revert" },
     -- 体积雾的「起始距离 / 近场淡入」：经典雾的 StartDistance 管不到体积雾，
     -- 这两个才是体积雾版的起始距离。把 volstart 推到 20~30 米，房间里的近场浓雾就退掉、远处保留。
     ["fog.vstart"]     = { cls = "ExponentialHeightFogComponent", prop = "VolumetricFogStartDistance",
-                           setter = "SetVolumetricFogStartDistance", mode = "abs" },
+                           setter = "SetVolumetricFogStartDistance", mode = "abs", onDisable = "revert" },
     ["fog.vnearfade"]  = { cls = "ExponentialHeightFogComponent", prop = "VolumetricFogNearFadeInDistance",
-                           setter = "SetVolumetricFogNearFadeInDistance", mode = "abs" },
+                           setter = "SetVolumetricFogNearFadeInDistance", mode = "abs", onDisable = "revert" },
 
     -- 平行光强度：比例模式（1.0 = 100%，和雾的浓度比例同一套语义）。
     -- scope="primary" 只动主太阳，不会把月亮/补光一起改成同一个值。
