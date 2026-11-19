@@ -12,7 +12,8 @@ param(
 $ErrorActionPreference = 'Stop'
 $repo = Resolve-Path (Join-Path $PSScriptRoot '..')
 if ([string]::IsNullOrWhiteSpace($Out)) { $Out = Join-Path $repo '_release' }
-$ver = (Get-Content (Join-Path $repo 'VERSION') -ErrorAction SilentlyContinue | Select-Object -First 1); if (-not $ver) { $ver = '0.0.0' }
+$modVerFile = Join-Path $repo 'lua\PBZFog\VERSION'
+$ver = (Get-Content $modVerFile -ErrorAction SilentlyContinue | Select-Object -First 1); if (-not $ver) { $ver = '0.0.0' }
 Write-Host "版本 $ver -> $Out\Velm  (自包含=$([bool]$SelfContained))" -ForegroundColor Cyan
 if (Test-Path $Out) { Remove-Item $Out -Recurse -Force }
 $Pkg = Join-Path $Out 'Velm'
@@ -35,6 +36,7 @@ Publish-App (Join-Path $repo 'panel\PBZTweaker') (Join-Path $mod 'PBZFog\PBZTwea
 Write-Host "发布管理器(窗口版) -> Manager\ ..." -ForegroundColor Yellow
 Publish-App (Join-Path $repo 'manager\PBZModManagerGui') $mgr
 Get-ChildItem $Pkg -Recurse -Filter *.pdb -File -ErrorAction SilentlyContinue | Remove-Item -Force
+$mv = Join-Path $repo 'manager\VERSION'; if (Test-Path $mv) { Copy-Item $mv (Join-Path $mgr 'VERSION') -Force }
 
 Write-Host "复制模组脚本 + 参数表 ..." -ForegroundColor Yellow
 robocopy (Join-Path $repo 'lua\PBZFog\Scripts') (Join-Path $mod 'PBZFog\Scripts') /E /NFL /NDL /NJH /NJS /NP | Out-Null
@@ -43,13 +45,17 @@ $presetJson = Join-Path $repo 'lua\PBZFog\pbz_presets.json'
 if (Test-Path $presetJson) { Copy-Item $presetJson (Join-Path $mod 'PBZFog\pbz_presets.json') -Force }
 $langDir = Join-Path $repo 'lua\PBZFog\lang'
 if (Test-Path $langDir) { robocopy $langDir (Join-Path $mod 'PBZFog\lang') /E /NFL /NDL /NJH /NJS /NP | Out-Null }
+$modVer = Join-Path $repo 'lua\PBZFog\VERSION'
+if (Test-Path $modVer) { Copy-Item $modVer (Join-Path $mod 'PBZFog\VERSION') -Force }
 
 Write-Host "复制说明 / 许可 ..." -ForegroundColor Yellow
-foreach ($f in @('LICENSE', 'CHANGELOG.md', 'VERSION')) {
+foreach ($f in @('LICENSE', 'CHANGELOG.md')) {
     if (Test-Path (Join-Path $repo $f)) { Copy-Item (Join-Path $repo $f) (Join-Path $Pkg $f) -Force }
 }
 $guide = Join-Path $repo 'packaging\安装说明.txt'
 if (Test-Path $guide) { Copy-Item $guide (Join-Path $Pkg '安装说明.txt') -Force }
+$manifest = Join-Path $repo 'version.json'
+if (Test-Path $manifest) { Copy-Item $manifest (Join-Path $Pkg 'version.json') -Force }
 
 if ($WithUE4SS) {
     $v = Join-Path $repo 'vendor\ue4ss'

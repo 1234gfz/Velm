@@ -46,8 +46,10 @@
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                 <TextBlock Text="更新检查代理(可选):" VerticalAlignment="Center" Margin="0,0,6,0" Foreground="#7C766E"/>
-                <TextBox x:Name="ProxyBox" Width="220" VerticalAlignment="Center" ToolTip="如 http://127.0.0.1:7897；国内访问 GitHub 需要时填"/>
+                <TextBox x:Name="ProxyBox" Width="180" VerticalAlignment="Center" ToolTip="如 http://127.0.0.1:7897；国内访问 GitHub 需要时填"/>
                 <Button Content="检查更新" Click="Update_Click" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                <Button x:Name="UpdateModBtn" Content="一键更新模组" Click="UpdateMod_Click" Margin="8,0,0,0" VerticalAlignment="Center" IsEnabled="False"/>
+                <Button x:Name="MgrUpdateBtn" Content="更新管理器" Click="MgrUpdate_Click" Margin="8,0,0,0" VerticalAlignment="Center" IsEnabled="False"/>
             </StackPanel>
         </StackPanel>
 

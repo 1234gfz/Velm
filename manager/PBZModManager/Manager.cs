@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
+using System.IO.Compression;
 using System.Text.RegularExpressions;
 
 namespace PBZModManager;
@@ -258,5 +260,109 @@ public static class Manager
     {
         if (Version.TryParse(local, out var l) && Version.TryParse(remote, out var r)) return r.CompareTo(l);
         return string.Equals(local, remote) ? 0 : 1;
+    }
+
+    // ---------------------------------------------------------------- 版本（模组 / 管理器分开）
+
+    public static string LocalManagerVersion()
+    {
+        foreach (var p in new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, "VERSION"),
+            Path.Combine(AppContext.BaseDirectory, "..", "Manager", "VERSION"),
+            Path.Combine(AppContext.BaseDirectory, "..", "VERSION"),
+        })
+        {
+            try { if (File.Exists(p)) return File.ReadAllText(p).Trim(); } catch { }
+        }
+        return "?";
+    }
+
+    public static string PayloadModVersion()
+    {
+        var root = FindModRoot();
+        if (root != null)
+        {
+            var p = Path.Combine(root, ModName, "VERSION");
+            try { if (File.Exists(p)) return File.ReadAllText(p).Trim(); } catch { }
+        }
+        return "?";
+    }
+
+    public static string InstalledModVersion(string gameSteam)
+    {
+        try { var p = Path.Combine(InstalledModPath(gameSteam), "VERSION"); if (File.Exists(p)) return File.ReadAllText(p).Trim(); } catch { }
+        return "（未安装）";
+    }
+
+    public sealed class UpdateInfo
+    {
+        public string mod { get; set; } = "";
+        public string manager { get; set; } = "";
+        public string modUrl { get; set; } = "";
+        public string managerUrl { get; set; } = "";
+        public string notes { get; set; } = "";
+    }
+
+    private static HttpClientHandler MakeHandler(string? proxy)
+    {
+        var h = new HttpClientHandler();
+        if (!string.IsNullOrWhiteSpace(proxy))
+        {
+            var uri = new Uri(proxy!.Contains("://") ? proxy : "http://" + proxy);
+            h.Proxy = new System.Net.WebProxy(uri);
+            h.UseProxy = true;
+        }
+        return h;
+    }
+
+    public static UpdateInfo CheckUpdates(string? proxy = null)
+    {
+        var url = "https://raw.githubusercontent.com/1234gfz/Velm/main/version.json";
+        using var handler = MakeHandler(proxy);
+        using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(20) };
+        http.DefaultRequestHeaders.UserAgent.ParseAdd("Velm-Updater");
+        var json = http.GetStringAsync(url).GetAwaiter().GetResult();
+        var opt = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        return JsonSerializer.Deserialize<UpdateInfo>(json, opt) ?? new UpdateInfo();
+    }
+
+    public static string DownloadToTemp(string url, string? proxy, Action<string>? log = null)
+    {
+        using var handler = MakeHandler(proxy);
+        using var http = new HttpClient(handler) { Timeout = TimeSpan.FromMinutes(5) };
+        http.DefaultRequestHeaders.UserAgent.ParseAdd("Velm-Updater");
+        log?.Invoke("下载中：" + url);
+        var bytes = http.GetByteArrayAsync(url).GetAwaiter().GetResult();
+        var p = Path.Combine(Path.GetTempPath(), "velm_mod_" + Guid.NewGuid().ToString("N") + ".zip");
+        File.WriteAllBytes(p, bytes);
+        log?.Invoke($"已下载 {(bytes.Length / 1024.0):F0} KB");
+        return p;
+    }
+
+    // 用更新包（任意 zip，内含 PBZFog\Scripts\main.lua）替换游戏内已装模组；游戏在跑则拒绝。
+    public static void UpdateMod(string gameSteam, string zipPath, Action<string>? log = null)
+    {
+        if (IsGameRunning()) throw new InvalidOperationException("游戏正在运行，请先关闭游戏再更新模组。");
+        var tmp = Path.Combine(Path.GetTempPath(), "velm_extract_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tmp);
+        try
+        {
+            ZipFile.ExtractToDirectory(zipPath, tmp);
+            var src = Directory.GetDirectories(tmp, ModName, SearchOption.AllDirectories)
+                .FirstOrDefault(d => File.Exists(Path.Combine(d, "Scripts", "main.lua")));
+            if (src == null) throw new Exception("更新包里没找到 PBZFog\\Scripts\\main.lua");
+            var dst = InstalledModPath(gameSteam);
+            if (Directory.Exists(dst))
+            {
+                var bak = dst + ".bak-" + DateTime.Now.ToString("yyyyMMdd-HHmmss");
+                log?.Invoke("备份旧模组 -> " + bak);
+                CopyDir(dst, bak);
+                Directory.Delete(dst, true);
+            }
+            CopyDir(src, dst);
+            log?.Invoke("已更新到：" + dst);
+        }
+        finally { try { Directory.Delete(tmp, true); } catch { } }
     }
 }
