@@ -1,4 +1,24 @@
 {
+  "ui": {
+    "整体效果": "Overall effect",
+    "整体效果已开启": "Overall effect ON",
+    "整体效果已关闭 · 全部回到游戏原版（数值都留着）": "Overall effect OFF · back to vanilla (values kept)",
+    "有未应用的改动": "Unsaved changes",
+    "存": "Save", "删": "Delete", "覆盖": "Overwrite", "还原": "Revert",
+    "应用": "Apply", "应用 •": "Apply •",
+    "不修改": "No change", "开": "On", "关": "Off",
+    "切换这个参数的写法：绝对 / 比例（原值 × %） / 偏移（原值 + Δ）": "Switch mode: Absolute / Ratio (orig × %) / Offset (orig + Δ)",
+    "显示": "Show", "隐藏": "Hide"
+  },
+  "groupdesc": {
+    "雾效": "Fog intensity and volumetric fog settings.",
+    "画面": "Bloom and other image effects.",
+    "光照与色调": "Exposure / local exposure / tone mapping / color grading / ambient occlusion. These depend on the in-game graphics preset and may not apply at low presets.",
+    "分辨率（窗口）": "The game's own resolution interface is stubbed, so this resizes the game window directly and UE rebuilds the render target itself. Independent of the master switch."
+  },
+  "options": {
+    "不修改": "No change", "窗口": "Windowed", "独占全屏": "Exclusive Fullscreen", "无边框": "Borderless", "默认": "Default"
+  },
   "groups": {
     "雾效": "Fog",
     "画面": "Image",

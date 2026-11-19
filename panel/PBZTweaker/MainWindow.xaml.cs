@@ -216,6 +216,38 @@ namespace PBZTweaker
             return zh;
         }
 
+        private string Ui(string zh)
+        {
+            if (_lang != "en" || string.IsNullOrEmpty(zh) || _langMap == null) return zh;
+            if (_langMap["ui"] is JsonObject u && u[zh] is JsonValue v) return v.GetValue<string>();
+            return zh;
+        }
+        private string OptT(string zh)
+        {
+            if (_lang != "en" || string.IsNullOrEmpty(zh) || _langMap == null) return zh;
+            if (_langMap["options"] is JsonObject u && u[zh] is JsonValue v) return v.GetValue<string>();
+            return Ui(zh);
+        }
+        private string GroupDesc(string groupNameZh, string desc)
+        {
+            if (_lang != "en" || _langMap == null) return desc;
+            if (_langMap["groupdesc"] is JsonObject u && u[groupNameZh] is JsonValue v) return v.GetValue<string>();
+            return desc;
+        }
+        private void ApplyChrome()
+        {
+            try
+            {
+                if (MasterLabel != null) MasterLabel.Text = Ui("整体效果");
+                if (PresetSave != null) PresetSave.Content = Ui("存");
+                if (PresetDel != null) PresetDel.Content = Ui("删");
+                if (PresetApply != null) PresetApply.Content = Ui("覆盖");
+                if (RevertBtn != null) RevertBtn.Content = Ui("还原");
+                if (ApplyBtn != null) ApplyBtn.Content = _dirty ? Ui("应用 •") : Ui("应用");
+            }
+            catch { }
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -613,7 +645,7 @@ namespace PBZTweaker
             if (spec == "none")
             {
                 RestoreDisplayMode();
-                Status.Text = "分辨率：不修改";
+                Status.Text = _lang == "en" ? "Resolution: No change" : "分辨率：不修改";
                 return;
             }
 
@@ -677,7 +709,7 @@ namespace PBZTweaker
             int x = Math.Max(0, (sw - aw) / 2);
             int y = Math.Max(0, (sh - ah) / 2);
             SetWindowPos(_gameHwnd, IntPtr.Zero, x, y, aw, ah, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE);
-            Status.Text = string.Format("分辨率 {0}×{1}", w, h);
+            Status.Text = string.Format(_lang == "en" ? "Resolution {0}×{1}" : "分辨率 {0}×{1}", w, h);
         }
 
         private void ApplyAppParams()
@@ -922,7 +954,7 @@ namespace PBZTweaker
             {
                 _dirty = false;
                 ApplyBtn.Content = "应用";
-                Status.Text = on ? "整体效果已开启" : "整体效果已关闭 · 全部回到游戏原版（数值都留着）";
+                Status.Text = on ? Ui("整体效果已开启") : Ui("整体效果已关闭 · 全部回到游戏原版（数值都留着）");
                 // 分辨率/窗口不跟总开关联动：避免对比效果时窗口反复重建、屏幕黑一下。
                 if (!on) { /* 不改显示模式 */ }
             }
@@ -932,7 +964,7 @@ namespace PBZTweaker
         {
             _dirty = true;
             ApplyBtn.Content = "应用 •";
-            Status.Text = "有未应用的改动";
+            Status.Text = Ui("有未应用的改动");
         }
 
         private void Apply_Click(object sender, RoutedEventArgs e)
@@ -941,7 +973,9 @@ namespace PBZTweaker
             {
                 _dirty = false;
                 ApplyBtn.Content = "应用";
-                Status.Text = "已应用 " + DateTime.Now.ToString("HH:mm:ss") + " · " + _paramCount + " 项";
+                Status.Text = _lang == "en"
+                    ? ("Applied " + DateTime.Now.ToString("HH:mm:ss") + " · " + _paramCount + " items")
+                    : ("已应用 " + DateTime.Now.ToString("HH:mm:ss") + " · " + _paramCount + " 项");
                 ApplyAppParams();
                 TakeFocusBack();
                 // 切完显示模式后系统会自己再挪一次前台，补一枪
@@ -1002,7 +1036,17 @@ namespace PBZTweaker
             foreach (var kv in preset)
             {
                 var node = FindParam(kv.Key);
-                if (node != null && kv.Value != null) node["value"] = kv.Value.DeepClone();
+                if (node == null || kv.Value == null) continue;
+                if (kv.Value is JsonObject eo && (eo.ContainsKey("value") || eo.ContainsKey("enabled") || eo.ContainsKey("mode") || eo.ContainsKey("ratio") || eo.ContainsKey("offset")))
+                {
+                    // 新格式：{ value, enabled, mode, ratio, offset } 只覆盖存在的字段
+                    foreach (var f in new[] { "value", "enabled", "mode", "ratio", "offset" })
+                        if (eo[f] != null) node[f] = eo[f].DeepClone();
+                }
+                else
+                {
+                    node["value"] = kv.Value.DeepClone(); // 兼容旧格式: { key: value }
+                }
             }
             BuildUi();
 
@@ -1012,13 +1056,13 @@ namespace PBZTweaker
                 {
                     _dirty = false;
                     ApplyBtn.Content = "应用";
-                    Status.Text = "已用预设「" + name + "」覆盖并应用";
+                    Status.Text = _lang == "en" ? ("Preset \"" + name + "\" applied") : ("已用预设「" + name + "」覆盖并应用");
                 }
             }
             else
             {
                 MarkDirty();
-                Status.Text = "已载入预设「" + name + "」，点应用生效";
+                Status.Text = _lang == "en" ? ("Preset \"" + name + "\" loaded; click Apply to take effect") : ("已载入预设「" + name + "」，点应用生效");
             }
         }
 
@@ -1027,7 +1071,7 @@ namespace PBZTweaker
             var name = PresetBox.SelectedItem as string;
             if (string.IsNullOrEmpty(name) || _presets[name] is not JsonObject preset)
             {
-                Status.Text = "先选中一个预设";
+                Status.Text = _lang == "en" ? "Select a preset first" : "先选中一个预设";
                 return;
             }
             OverwriteFromPreset(name, preset, true);
@@ -1048,7 +1092,7 @@ namespace PBZTweaker
         private void PresetSave_Click(object sender, RoutedEventArgs e)
         {
             var name = (PresetName.Text ?? "").Trim();
-            if (name.Length == 0) { Status.Text = "先在右边输入一个预设名字"; return; }
+            if (name.Length == 0) { Status.Text = _lang == "en" ? "Type a preset name on the right first" : "先在右边输入一个预设名字"; return; }
             if (_root?["groups"] is not JsonArray groups) return;
 
             var obj = new JsonObject();
@@ -1056,8 +1100,13 @@ namespace PBZTweaker
             {
                 if (g?["parameters"] is not JsonArray ps) continue;
                 foreach (var p in ps)
-                    if (p is JsonObject po && po["key"] is JsonValue kv && po["value"] != null)
-                        obj[(string)kv] = po["value"].DeepClone();
+                {
+                    if (p is not JsonObject po || po["key"] is not JsonValue kv) continue;
+                    var entry = new JsonObject();
+                    foreach (var f in new[] { "value", "enabled", "mode", "ratio", "offset" })
+                        if (po[f] != null) entry[f] = po[f].DeepClone();
+                    if (entry.Count > 0) obj[(string)kv] = entry;
+                }
             }
             _presets[name] = obj;
             SavePresets();
@@ -1068,20 +1117,20 @@ namespace PBZTweaker
             PresetName.Text = "";
             _loadingPresets = false;
 
-            Status.Text = "预设「" + name + "」已保存";
+            Status.Text = _lang == "en" ? ("Preset \"" + name + "\" saved") : ("预设「" + name + "」已保存");
         }
 
         private void PresetDel_Click(object sender, RoutedEventArgs e)
         {
             var name = PresetBox.SelectedItem as string;
-            if (string.IsNullOrEmpty(name) || _presets[name] == null) { Status.Text = "没选中可删的预设"; return; }
+            if (string.IsNullOrEmpty(name) || _presets[name] == null) { Status.Text = _lang == "en" ? "No preset selected to delete" : "没选中可删的预设"; return; }
             _presets.Remove(name);
             SavePresets();
             _loadingPresets = true;
             PresetBox.Items.Remove(name);
             PresetName.Text = "";
             _loadingPresets = false;
-            Status.Text = "预设「" + name + "」已删除";
+            Status.Text = _lang == "en" ? ("Preset \"" + name + "\" deleted") : ("预设「" + name + "」已删除");
         }
 
         // ------------------------------------------------------------ UI
@@ -1093,6 +1142,7 @@ namespace PBZTweaker
 
             TitleText.Text = _lang == "en" ? "Velm · Tweaker" : (_root["title"]?.GetValue<string>() ?? "Velm · 调参器");
             if (SubText != null) SubText.Text = _lang == "en" ? "Press F8 to open" : "F8 呼出面板";
+            ApplyChrome();
 
             _paramCount = 0;
             if (_root["groups"] is not JsonArray groups) { Status.Text = "参数表里没有 groups"; return; }
@@ -1100,8 +1150,9 @@ namespace PBZTweaker
             foreach (var gnode in groups)
             {
                 if (gnode is not JsonObject g) continue;
-                var name = LocGroup(g["name"]?.GetValue<string>() ?? "未命名");
-                var desc = g["desc"]?.GetValue<string>();
+                var gNameZh = g["name"]?.GetValue<string>() ?? "未命名";
+                var name = LocGroup(gNameZh);
+                var desc = GroupDesc(gNameZh, g["desc"]?.GetValue<string>());
 
                 Panel.Children.Add(new TextBlock
                 {
@@ -1154,7 +1205,7 @@ namespace PBZTweaker
                 }
             }
 
-            if (!_dirty) Status.Text = "就绪 · " + _paramCount + " 项";
+            if (!_dirty) Status.Text = _lang == "en" ? ("Ready · " + _paramCount + " items") : ("就绪 · " + _paramCount + " 项");
             SyncMasterUi();
         }
 
@@ -1615,7 +1666,7 @@ namespace PBZTweaker
                     defText = (curMode == "ratio")
                         ? "100%"
                         : (curMode == "offset" ? "0" : Fmt(GetDouble(p, "default", absMinS) * k, st, dc) + (suffix ?? ""));
-                    offText.Text = "原版 " + defText;
+                    offText.Text = (_lang == "en" ? "Original " : "原版 ") + defText;
                 }
 
                 BuildValueControls();
@@ -1680,7 +1731,7 @@ namespace PBZTweaker
                 bool val = GetBool(p, "value", false);
                 var btn = new ToggleButton
                 {
-                    Content = val ? "开" : "关",
+                    Content = val ? Ui("开") : Ui("关"),
                     IsChecked = val,
                     Width = 64,
                     Height = 32,
@@ -1691,21 +1742,21 @@ namespace PBZTweaker
                 };
                 btn.Checked += (s, e) =>
                 {
-                    btn.Content = "开";
+                    btn.Content = Ui("开");
                     btn.Background = Brush(CAccent);
                     p["value"] = JsonValue.Create(true);
                     MarkDirty();
                 };
                 btn.Unchecked += (s, e) =>
                 {
-                    btn.Content = "关";
+                    btn.Content = Ui("关");
                     btn.Background = Brush("#3F3B36");
                     p["value"] = JsonValue.Create(false);
                     MarkDirty();
                 };
 
                 void ResetBool() => btn.IsChecked = GetBool(p, "default", false);
-                defText = GetBool(p, "default", false) ? "开" : "关";
+                defText = GetBool(p, "default", false) ? Ui("开") : Ui("关");
 
                 lbl.MouseLeftButtonDown += (s, e) =>
                 {
@@ -1736,7 +1787,7 @@ namespace PBZTweaker
                         if (o is not JsonObject oo) continue;
                         labels.Add(oo["label"]?.GetValue<string>() ?? "");
                         values.Add(oo["value"]?.GetValue<string>() ?? "");
-                        combo.Items.Add(oo["label"]?.GetValue<string>() ?? "");
+                        combo.Items.Add(OptT(oo["label"]?.GetValue<string>() ?? ""));
                     }
                 }
 
@@ -1761,7 +1812,7 @@ namespace PBZTweaker
                 {
                     var d = p["default"]?.GetValue<string>() ?? cur;
                     var di = values.IndexOf(d);
-                    defText = (di >= 0 && di < labels.Count) ? labels[di] : d;
+                    defText = (di >= 0 && di < labels.Count) ? OptT(labels[di]) : d;
                 }
 
                 lbl.MouseLeftButtonDown += (s, e) =>
@@ -1772,7 +1823,7 @@ namespace PBZTweaker
                 ctrlHost.Children.Add(combo);
             }
 
-            offText.Text = "原版 " + defText;
+            offText.Text = (_lang == "en" ? "Original " : "原版 ") + defText;
 
             void ApplyEnabledVisual(bool v)
             {
@@ -1811,11 +1862,11 @@ namespace PBZTweaker
             _ => "="
         };
 
-        private static string ModeLabel(string mode) => mode switch
+        private string ModeLabel(string mode) => mode switch
         {
-            "ratio" => "比例（原值 × %）",
-            "offset" => "偏移（原值 + Δ）",
-            _ => "绝对（写死一个值）"
+            "ratio" => _lang == "en" ? "Ratio (orig × %)" : "比例（原值 × %）",
+            "offset" => _lang == "en" ? "Offset (orig + Δ)" : "偏移（原值 + Δ）",
+            _ => _lang == "en" ? "Absolute (fixed value)" : "绝对（写死一个值）"
         };
 
         private static Button MakeResetButton(Action onClick)
