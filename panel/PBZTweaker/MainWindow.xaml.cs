@@ -378,6 +378,7 @@ namespace PBZTweaker
             var hkOk = RegisterHotKey(_hwnd, HOTKEY_ID, _hotkeyMods, _hotkeyVk);
             LoadMasterHotkeyFromJson();
             RegisterMasterHotkey();
+            try { InitMhotBox(); } catch { }   // 注册后同步下拉框显示，避免重启后看起来"没保存"
             try
             {
                 var logPath = System.IO.Path.Combine(ModDir, "panel_hotkey.log");
@@ -397,6 +398,7 @@ namespace PBZTweaker
         private void InitTrayIcon()
         {
             LoadHotkeyFromJson();
+            LoadMasterHotkeyFromJson();   // 必须在 InitHotkeyBox→InitMhotBox 之前，否则下拉框显示"无"
             InitHotkeyBox();
             try
             {
