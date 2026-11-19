@@ -41,8 +41,9 @@ $mv = Join-Path $repo 'manager\VERSION'; if (Test-Path $mv) { Copy-Item $mv (Joi
 Write-Host "复制模组脚本 + 参数表 ..." -ForegroundColor Yellow
 robocopy (Join-Path $repo 'lua\Velm\Scripts') (Join-Path $mod 'Velm\Scripts') /E /NFL /NDL /NJH /NJS /NP | Out-Null
 Copy-Item (Join-Path $repo 'lua\Velm\pbz_tweaker.json') (Join-Path $mod 'Velm\pbz_tweaker.json') -Force
-$presetJson = Join-Path $repo 'lua\Velm\pbz_presets.json'
-if (Test-Path $presetJson) { Copy-Item $presetJson (Join-Path $mod 'Velm\pbz_presets.json') -Force }
+$presetDir = Join-Path $repo 'lua\Velm\pbz_presets'
+if (Test-Path $presetDir) { robocopy $presetDir (Join-Path $mod 'Velm\pbz_presets') /E /NFL /NDL /NJH /NJS /NP | Out-Null }
+else { New-Item -ItemType Directory -Force -Path (Join-Path $mod 'Velm\pbz_presets') | Out-Null }
 $langDir = Join-Path $repo 'lua\Velm\lang'
 if (Test-Path $langDir) { robocopy $langDir (Join-Path $mod 'Velm\lang') /E /NFL /NDL /NJH /NJS /NP | Out-Null }
 $modVer = Join-Path $repo 'lua\Velm\VERSION'

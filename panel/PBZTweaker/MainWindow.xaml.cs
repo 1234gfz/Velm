@@ -21,6 +21,8 @@ namespace PBZTweaker
         private static readonly string JsonPath = ResolveJsonPath();
         private static readonly string PresetPath =
             Path.Combine(Path.GetDirectoryName(JsonPath) ?? ".", "pbz_presets.json");
+        private static readonly string PresetsDir =
+            Path.Combine(Path.GetDirectoryName(JsonPath) ?? ".", "pbz_presets");
         private static readonly string UiStatePath =
             Path.Combine(Path.GetDirectoryName(JsonPath) ?? ".", "pbz_ui.json");
         private static readonly string EnLangPath =
@@ -239,9 +241,7 @@ namespace PBZTweaker
             try
             {
                 if (MasterLabel != null) MasterLabel.Text = Ui("整体效果");
-                if (PresetSave != null) PresetSave.Content = Ui("存");
-                if (PresetDel != null) PresetDel.Content = Ui("删");
-                if (PresetApply != null) PresetApply.Content = Ui("覆盖");
+                if (PresetApply != null) PresetApply.Content = Ui("应用");
                 if (RevertBtn != null) RevertBtn.Content = Ui("还原");
                 if (ApplyBtn != null) ApplyBtn.Content = _dirty ? Ui("应用 •") : Ui("应用");
             }
@@ -894,30 +894,84 @@ namespace PBZTweaker
 
         private void LoadPresets()
         {
+            _presets = new JsonObject();
             try
             {
+                // 旧的「单文件里装所有预设」自动拆成 presets/<名字>.json
                 if (File.Exists(PresetPath))
-                    _presets = JsonNode.Parse(File.ReadAllText(PresetPath)) as JsonObject ?? new JsonObject();
-                else
-                    _presets = new JsonObject();
+                {
+                    try
+                    {
+                        if (JsonNode.Parse(File.ReadAllText(PresetPath)) is JsonObject old)
+                        {
+                            Directory.CreateDirectory(PresetsDir);
+                            foreach (var kv in old)
+                                if (kv.Value is JsonObject po)
+                                {
+                                    var fn = Path.Combine(PresetsDir, SafeName(kv.Key) + ".json");
+                                    if (!File.Exists(fn)) File.WriteAllText(fn, po.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+                                }
+                        }
+                    }
+                    catch { }
+                    try { File.Move(PresetPath, PresetPath + ".migrated.bak", true); } catch { }
+                }
+                if (Directory.Exists(PresetsDir))
+                {
+                    foreach (var f in Directory.GetFiles(PresetsDir, "*.json"))
+                    {
+                        try
+                        {
+                            if (JsonNode.Parse(File.ReadAllText(f)) is JsonObject po)
+                                _presets[Path.GetFileNameWithoutExtension(f)] = po;
+                        }
+                        catch { }
+                    }
+                }
             }
-            catch { _presets = new JsonObject(); }
+            catch { }
+            RefreshPresetCombo();
+        }
 
+        private static string SafeName(string n)
+        {
+            var s = string.Join("_", (n ?? "").Split(Path.GetInvalidFileNameChars())).Trim();
+            return s.Length == 0 ? "preset" : s;
+        }
+
+        private void WritePresetFile(string name)
+        {
+            Directory.CreateDirectory(PresetsDir);
+            File.WriteAllText(Path.Combine(PresetsDir, SafeName(name) + ".json"),
+                _presets[name]!.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        }
+
+        private void RefreshPresetCombo(string select = null)
+        {
             _loadingPresets = true;
             PresetBox.Items.Clear();
-            foreach (var kv in _presets)
-                PresetBox.Items.Add(kv.Key);
+            foreach (var kv in _presets) PresetBox.Items.Add(kv.Key);
+            if (select != null && PresetBox.Items.Contains(select)) PresetBox.SelectedItem = select;
             _loadingPresets = false;
         }
 
-        private void SavePresets()
+        private JsonObject BuildPresetFromParams()
         {
-            try
+            var obj = new JsonObject();
+            if (_root?["groups"] is not JsonArray groups) return obj;
+            foreach (var g in groups)
             {
-                File.WriteAllText(PresetPath,
-                    _presets.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+                if (g?["parameters"] is not JsonArray ps) continue;
+                foreach (var p in ps)
+                {
+                    if (p is not JsonObject po || po["key"] is not JsonValue kv) continue;
+                    var entry = new JsonObject();
+                    foreach (var f in new[] { "value", "enabled", "mode", "ratio", "offset" })
+                        if (po[f] != null) entry[f] = po[f].DeepClone();
+                    if (entry.Count > 0) obj[(string)kv] = entry;
+                }
             }
-            catch { }
+            return obj;
         }
 
         // ------------------------------------------------------------ 总开关
@@ -1089,48 +1143,153 @@ namespace PBZTweaker
             return null;
         }
 
-        private void PresetSave_Click(object sender, RoutedEventArgs e)
+        private void PresetMenu_Click(object sender, RoutedEventArgs e)
         {
-            var name = (PresetName.Text ?? "").Trim();
-            if (name.Length == 0) { Status.Text = _lang == "en" ? "Type a preset name on the right first" : "先在右边输入一个预设名字"; return; }
-            if (_root?["groups"] is not JsonArray groups) return;
-
-            var obj = new JsonObject();
-            foreach (var g in groups)
+            var menu = new ContextMenu { PlacementTarget = PresetMenuBtn, Placement = PlacementMode.Bottom };
+            var cur = PresetBox.SelectedItem as string;
+            bool has = !string.IsNullOrEmpty(cur) && _presets[cur] != null;
+            MenuItem Add(string zh, string en, Action act, bool en2 = true)
             {
-                if (g?["parameters"] is not JsonArray ps) continue;
-                foreach (var p in ps)
-                {
-                    if (p is not JsonObject po || po["key"] is not JsonValue kv) continue;
-                    var entry = new JsonObject();
-                    foreach (var f in new[] { "value", "enabled", "mode", "ratio", "offset" })
-                        if (po[f] != null) entry[f] = po[f].DeepClone();
-                    if (entry.Count > 0) obj[(string)kv] = entry;
-                }
+                var mi = new MenuItem { Header = _lang == "en" ? en : zh, IsEnabled = en2 };
+                mi.Click += (s2, e2) => act();
+                menu.Items.Add(mi); return mi;
             }
-            _presets[name] = obj;
-            SavePresets();
-
-            _loadingPresets = true;
-            if (!PresetBox.Items.Contains(name)) PresetBox.Items.Add(name);
-            PresetBox.SelectedItem = name;
-            PresetName.Text = "";
-            _loadingPresets = false;
-
-            Status.Text = _lang == "en" ? ("Preset \"" + name + "\" saved") : ("预设「" + name + "」已保存");
+            Add("保存为新预设…", "Save as new preset…", SaveAsNew);
+            Add("覆盖保存当前预设…", "Overwrite selected preset…", () => OverwriteCurrent(cur), has);
+            menu.Items.Add(new Separator());
+            Add("重命名…", "Rename…", () => RenamePreset(cur), has);
+            Add("复制为新预设…", "Duplicate…", () => DuplicatePreset(cur), has);
+            Add("删除…", "Delete…", () => DeletePreset(cur), has);
+            menu.Items.Add(new Separator());
+            Add("导出到文件…", "Export to file…", () => ExportPreset(cur), has);
+            Add("从文件导入…", "Import from file…", ImportPreset);
+            Add("打开预设文件夹", "Open preset folder", () => { try { Directory.CreateDirectory(PresetsDir); Process.Start("explorer.exe", PresetsDir); } catch { } });
+            menu.IsOpen = true;
         }
 
-        private void PresetDel_Click(object sender, RoutedEventArgs e)
+        private void SaveAsNew()
         {
-            var name = PresetBox.SelectedItem as string;
-            if (string.IsNullOrEmpty(name) || _presets[name] == null) { Status.Text = _lang == "en" ? "No preset selected to delete" : "没选中可删的预设"; return; }
+            var name = PromptText(_lang == "en" ? "Save as new preset" : "保存为新预设", _lang == "en" ? "Preset" : "预设",
+                _lang == "en" ? "Store the current panel as a new preset." : "把当前面板存成一个新的预设。");
+            if (string.IsNullOrWhiteSpace(name)) return;
+            if (_presets[name] != null &&
+                MessageBox.Show(_lang == "en" ? $"Preset \"{name}\" already exists. Overwrite?" : $"预设「{name}」已存在，覆盖吗？",
+                    "", MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
+            _presets[name] = BuildPresetFromParams();
+            WritePresetFile(name);
+            RefreshPresetCombo(name);
+            Status.Text = _lang == "en" ? $"Saved \"{name}\"" : $"已保存「{name}」";
+        }
+
+        private void OverwriteCurrent(string name)
+        {
+            if (name == null || _presets[name] == null) return;
+            if (MessageBox.Show(_lang == "en" ? $"Overwrite preset \"{name}\" with current panel?" : $"用当前面板覆盖预设「{name}」？",
+                    "", MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
+            _presets[name] = BuildPresetFromParams();
+            WritePresetFile(name);
+            RefreshPresetCombo(name);
+            Status.Text = _lang == "en" ? $"Overwrote \"{name}\"" : $"已覆盖「{name}」";
+        }
+
+        private void RenamePreset(string name)
+        {
+            if (name == null || _presets[name] == null) return;
+            var nn = PromptText(_lang == "en" ? "Rename preset" : "重命名预设", name,
+                _lang == "en" ? "New name:" : "新名称：");
+            if (string.IsNullOrWhiteSpace(nn) || nn == name) return;
+            if (_presets[nn] != null) { Status.Text = _lang == "en" ? "That name already exists" : "该名字已存在"; return; }
+            _presets[nn] = _presets[name]!.DeepClone();
             _presets.Remove(name);
-            SavePresets();
-            _loadingPresets = true;
-            PresetBox.Items.Remove(name);
-            PresetName.Text = "";
-            _loadingPresets = false;
-            Status.Text = _lang == "en" ? ("Preset \"" + name + "\" deleted") : ("预设「" + name + "」已删除");
+            try { File.Delete(Path.Combine(PresetsDir, SafeName(name) + ".json")); } catch { }
+            WritePresetFile(nn);
+            RefreshPresetCombo(nn);
+            Status.Text = _lang == "en" ? $"Renamed to \"{nn}\"" : $"已重命名为「{nn}」";
+        }
+
+        private void DuplicatePreset(string name)
+        {
+            if (name == null || _presets[name] == null) return;
+            var nn = PromptText(_lang == "en" ? "Duplicate as new preset" : "复制为新预设", name + " 2",
+                _lang == "en" ? "New preset name:" : "新预设名称：");
+            if (string.IsNullOrWhiteSpace(nn)) return;
+            if (_presets[nn] != null &&
+                MessageBox.Show(_lang == "en" ? $"Preset \"{nn}\" already exists. Overwrite?" : $"预设「{nn}」已存在，覆盖吗？",
+                    "", MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
+            _presets[nn] = (JsonObject)_presets[name]!.DeepClone();
+            WritePresetFile(nn);
+            RefreshPresetCombo(nn);
+            Status.Text = _lang == "en" ? $"Duplicated to \"{nn}\"" : $"已复制为「{nn}」";
+        }
+
+        private void DeletePreset(string name)
+        {
+            if (name == null || _presets[name] == null) return;
+            if (MessageBox.Show(_lang == "en" ? $"Delete preset \"{name}\" ?" : $"确定删除预设「{name}」吗？",
+                    "", MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
+            _presets.Remove(name);
+            try { File.Delete(Path.Combine(PresetsDir, SafeName(name) + ".json")); } catch { }
+            RefreshPresetCombo();
+            Status.Text = _lang == "en" ? $"Deleted \"{name}\"" : $"已删除「{name}」";
+        }
+
+        private void ExportPreset(string name)
+        {
+            if (name == null || _presets[name] == null) return;
+            var dlg = new Microsoft.Win32.SaveFileDialog { FileName = SafeName(name) + ".json", Filter = "JSON (*.json)|*.json" };
+            if (dlg.ShowDialog() != true) return;
+            try
+            {
+                File.WriteAllText(dlg.FileName, _presets[name]!.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+                Status.Text = _lang == "en" ? $"Exported \"{name}\"" : $"已导出「{name}」";
+            }
+            catch (Exception ex) { Status.Text = ex.Message; }
+        }
+
+        private void ImportPreset()
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "JSON (*.json)|*.json", Multiselect = true };
+            if (dlg.ShowDialog() != true) return;
+            int n = 0;
+            foreach (var f in dlg.FileNames)
+            {
+                try
+                {
+                    if (JsonNode.Parse(File.ReadAllText(f)) is JsonObject po)
+                    {
+                        var nm = Path.GetFileNameWithoutExtension(f);
+                        _presets[nm] = po; WritePresetFile(nm); n++;
+                    }
+                }
+                catch { }
+            }
+            RefreshPresetCombo();
+            Status.Text = _lang == "en" ? $"Imported {n} preset(s)" : $"已导入 {n} 个预设";
+        }
+
+        private string PromptText(string title, string initial, string hint)
+        {
+            var w = new Window
+            {
+                Title = title, Width = 380, Height = 160, WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = this, ResizeMode = ResizeMode.NoResize, Background = Brush(CCard), Foreground = Brush(CText), FontSize = 15
+            };
+            var sp = new StackPanel { Margin = new Thickness(16) };
+            if (!string.IsNullOrEmpty(hint))
+                sp.Children.Add(new TextBlock { Text = hint, Foreground = Brush(CTextDim), Margin = new Thickness(0, 0, 0, 8), TextWrapping = TextWrapping.Wrap });
+            var tb = new TextBox { Text = initial ?? "", Height = 34, FontSize = 16, Background = Brush(CFldBg), Foreground = Brush(CFldFg), BorderBrush = Brush("#33FFFFFF"), BorderThickness = new Thickness(1), Padding = new Thickness(6, 0, 6, 0) };
+            sp.Children.Add(tb);
+            var row = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 12, 0, 0) };
+            string result = null;
+            var ok = new Button { Content = _lang == "en" ? "OK" : "确定", Width = 84, Height = 30, Margin = new Thickness(0, 0, 8, 0), Background = Brush(CAccent), Foreground = Brush("#1A1D24"), BorderThickness = new Thickness(0) };
+            var cancel = new Button { Content = _lang == "en" ? "Cancel" : "取消", Width = 84, Height = 30, Background = Brush("#35322E"), Foreground = Brush(CText), BorderThickness = new Thickness(0) };
+            ok.Click += (s, e) => { result = tb.Text; w.DialogResult = true; };
+            cancel.Click += (s, e) => { w.DialogResult = false; };
+            row.Children.Add(ok); row.Children.Add(cancel);
+            sp.Children.Add(row);
+            w.Content = sp;
+            w.Loaded += (s, e) => { tb.Focus(); tb.SelectAll(); };
+            return w.ShowDialog() == true ? ((result ?? "").Trim()) : null;
         }
 
         // ------------------------------------------------------------ UI

@@ -196,25 +196,19 @@
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="96"/>
-                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <ComboBox x:Name="PresetBox" Grid.Column="0" Height="38"
-                              ToolTip="选中预设会覆盖当前面板并立即应用"/>
-                    <TextBox x:Name="PresetName" Grid.Column="1" Height="38" Margin="8,0,0,0"
-                             ToolTip="输入新名字，然后点「存」"/>
-                    <Button x:Name="PresetSave" Grid.Column="2" Content="存" Width="46" Height="38"
-                            Margin="8,0,0,0" FontSize="18" Background="#35322E" Foreground="#E7E3DC"
-                            BorderThickness="0" Click="PresetSave_Click" ToolTip="把当前面板存成预设"/>
-                    <Button x:Name="PresetDel" Grid.Column="3" Content="删" Width="46" Height="38"
-                            Margin="8,0,0,0" FontSize="18" Background="#35322E" Foreground="#9A928A"
-                            BorderThickness="0" Click="PresetDel_Click" ToolTip="删除选中的预设"/>
-                    <Button x:Name="PresetApply" Grid.Column="4" Content="覆盖" Width="64" Height="38"
-                            Margin="6,0,0,0" FontSize="13" Background="#4A4438" Foreground="#E8DCC4"
+                              ToolTip="选中预设即可应用；右侧「⋯」管理预设（保存/重命名/复制/删除/导入导出）"/>
+                    <Button x:Name="PresetApply" Grid.Column="1" Content="应用" Width="64" Height="38"
+                            Margin="8,0,0,0" FontSize="14" Background="#4A4438" Foreground="#E8DCC4"
                             BorderThickness="0" Click="PresetApply_Click"
                             ToolTip="用选中的预设覆盖当前面板的所有值并立即应用"/>
+                    <Button x:Name="PresetMenuBtn" Grid.Column="2" Content="⋯" Width="46" Height="38"
+                            Margin="6,0,0,0" FontSize="18" Background="#35322E" Foreground="#E7E3DC"
+                            BorderThickness="0" Click="PresetMenu_Click"
+                            ToolTip="保存 / 重命名 / 复制 / 删除 / 导入导出"/>
                 </Grid>
             </Border>
 
