@@ -1,4 +1,4 @@
-# 组装可发布的 PBZFog 模组目录。
+﻿# 组装可发布的 PBZFog 模组目录。
 #
 # 用法：
 #   powershell -ExecutionPolicy Bypass -File tools\package_release.ps1                  # 框架依赖(默认，仅需目标机装 .NET 9 桌面运行时)

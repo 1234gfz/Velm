@@ -1,4 +1,4 @@
-# 下载并解压指定版本的 UE4SS 到 vendor\ue4ss\（供打包“自带 UE4SS”使用）。
+﻿# 下载并解压指定版本的 UE4SS 到 vendor\ue4ss\（供打包“自带 UE4SS”使用）。
 # 二进制不进 git（.gitignore 已忽略 vendor/）。
 #
 # 用法：

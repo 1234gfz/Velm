@@ -1,4 +1,4 @@
-# 一键跑全部离线测试：Lua 语法 / 模块依赖 / 模拟 UE 环境的行为断言。
+﻿# 一键跑全部离线测试：Lua 语法 / 模块依赖 / 模拟 UE 环境的行为断言。
 # 需要本机有 Lua 5.4 解释器；可用 $env:LUA_EXE 指定路径。
 # 用法：powershell -ExecutionPolicy Bypass -File tools\run_tests.ps1
 $ErrorActionPreference = 'Stop'

@@ -1,4 +1,4 @@
-# 检测游戏目录里常见的注入代理 DLL 是否冲突。
+﻿# 检测游戏目录里常见的注入代理 DLL 是否冲突。
 # 用法：powershell -ExecutionPolicy Bypass -File tools\check_proxies.ps1 -GameSteamDir "<游戏>\platform\steam"
 param(
     [Parameter(Mandatory = $true)][string]$GameSteamDir
