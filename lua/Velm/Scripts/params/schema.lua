@@ -195,7 +195,10 @@ function schema.poll(force)
         if p.handler == "pp" then
             local val = p.value
             -- 总开关关掉（且不是 ignoreMaster 项）等价于该项 enabled=false → pp 会还原原值。
-            local effEnabled = (p.enabled ~= false) and (master or p.ignoreMaster)
+            -- ★ 注意必须得到真正的布尔：master=false 且 p.ignoreMaster 为 nil 时，
+            --    `(master or p.ignoreMaster)` 结果是 nil 而不是 false，会导致 pp 侧
+            --    `p.enabled == false` 判定失败 → 总开关对 pp 完全失效（历史 bug）。
+            local effEnabled = (p.enabled ~= false) and ((master == true) or (p.ignoreMaster == true))
             if (not master and not p.ignoreMaster) and p["default"] ~= nil then val = p["default"] end
 
             -- 模式兜底：不认识的、或该参数没开放这种模式的，一律退回绝对。

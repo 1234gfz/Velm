@@ -239,7 +239,7 @@ local function buildQueue()
             end
             lastMode[field] = m
 
-            if p.enabled == false then
+            if not p.enabled then
                 -- 关掉的项（含总开关关闭时全部按 false 下发）：无条件还原到原值，
                 -- 不再依赖 applied 标记——否则换图/重载后 applied 丢了就永远还原不回去。
                 pp.revertField(field, true)
