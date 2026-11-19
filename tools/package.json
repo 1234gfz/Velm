@@ -1,11 +1,15 @@
 {
-  "name": "pbzfog-tools",
+  "name": "pbzvis-tools",
   "private": true,
   "version": "1.0.0",
-  "description": "PBZFog 的离线校验工具：Lua 语法检查、模块依赖检查、用模拟 UE 环境跑行为测试",
+  "description": "PBZVisualTweaker 离线校验工具：Lua 语法检查、模块依赖检查、模拟 UE 环境的行为测试",
+  "scripts": {
+    "syntax": "node syntaxtest.js",
+    "lint": "node lint_modules.js",
+    "sim": "node run_sim.js",
+    "test": "node syntaxtest.js && node lint_modules.js && node run_sim.js"
+  },
   "dependencies": {
-    "fengari": "^0.1.4",
-    "luaparse": "^0.3.1",
-    "wasmoon": "^1.16.0"
+    "luaparse": "^0.3.1"
   }
 }

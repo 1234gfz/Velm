@@ -30,3 +30,5 @@ _deploy_backup/
 *.utoc
 *.dll
 *.exe
+_release/
+panel/PBZTweaker/_build_out/

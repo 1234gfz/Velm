@@ -28,6 +28,27 @@ const ADVANCED = new Set([
   'gi.lekernel','gi.lehit','gi.lelot','gi.lehits','gi.lelos','gi.calconst','gi.histmax',
 ]);
 
+// —— tooltip 措辞改中性公开版（去掉第一人称、个人调试记录、★/「你」等主观表述）——
+// 只覆盖需要改的项；没列出的保持原 hint。
+const HINT_PATCH = {
+  'fog.density': '控制整体雾浓度的主控项；100% = 游戏原版。',
+  'fog.extinction': '控制体积雾的「厚度 / 吸收」，与雾浓度是两个不同维度，可叠加使用；100% = 原版。',
+  'fog.vstart': '体积雾从多少米外才开始出现（原值 0 = 贴脸就有）。调到 20~30 米可退掉房间近处的浓雾、远处照旧。经典雾的「起始距离」管不到体积雾。',
+  'gi.lowpct': '调暗画面的主要杠杆。测光时排除最暗的 N% 像素：调大 → 排除更多暗部 → 测光值变亮 → 画面变暗。窗口（highpct − lowpct）别小于 15，否则曝光会抖。',
+  'gi.highpct': '测光时排除最亮的 (100−N)% 像素：调大 → 砍掉更多高光尾部 → 画面变亮；调小 → 让高光参与测光 → 画面变暗（高光被压住）。',
+  'gi.histmin': '直方图亮度统计的下边界，默认 −8（即 1/256）；低于该值的像素不进直方图。若 MinBrightness 压得很低仍无变化，把这个也往下调（−10、−12）。',
+  'gi.locgray': '中间灰的对数偏移：0 = 不变，1 = 2 倍亮，2 = 4 倍亮，−1 = 2 倍暗。官方 UI 范围 ±15；负值影响较小、正值更明显。',
+  'gi.ledetail': '1 之外的值才启用局部曝光，一般应保持 1；过大的值容易让画面过曝发白。',
+  'gi.lekernel': '用于模糊画面亮度的屏幕百分比。本版引擎该项未生效。',
+  'gi.lehit': '局部曝光的高光阈值；数值越低画面越亮、对比越低。官方 UI 下限为 0，实际可负。',
+  'gi.lelot': '局部曝光的阴影阈值；效果比高光阈值更明显，数值越低画面越亮，过低会发白。',
+  'gi.localexpmode': '局部曝光的算法：0 = 关闭，1 = Bilateral（双边），2 = Gaussian（高斯）。开着局部曝光时，全局曝光的上下限会被局部算法部分抵消。',
+  'gi.localexp': '⚠ 已废弃字段（引擎里名字带 _DEPRECATED）。UE5 已把它拆成「高光对比」和「阴影对比」两项，本项调整无反应，仅为兼容保留。',
+  'gi.evmode': '原值 0（直方图）。2 = 手动，曝光完全固定、不再忽明忽暗，代价是进暗处就是暗的、不再自动提亮。可设 0 / 1 / 2，2 最激进。',
+  'gi.skyleak': '漏光强度。绝对模式 = 直接给值（0~1）；比例模式 = 原值 × 百分比（100 = 不变）。比例模式下原值为 0 的场景不会被点亮，也不会被强行打开。',
+};
+
+
 // —— 目标分组与顺序（group -> subs -> keys）——
 const LAYOUT = [
   { name:'雾效', desc:'按百分比缩放游戏原本的雾强度，100% = 游戏原版。', subs:[
@@ -81,6 +102,7 @@ function main() {
         if (!src) { missing.push(k); continue; }
         const p = Object.assign({}, src);   // 保留所有原字段
         p.sub = sub;
+        if (HINT_PATCH[k]) p.hint = HINT_PATCH[k];
         if (ADVANCED.has(k)) p.advanced = true; else delete p.advanced;
         if (k === 'res.mode') p.ignoreMaster = true; else delete p.ignoreMaster;
         params.push(p);
