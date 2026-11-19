@@ -2,73 +2,17 @@ Velm（小维）· 影之刃零 画面调参模组 —— 安装说明
 ================================================
 
 【中文】
-
-一、这是什么
-解压后得到一个 Velm 文件夹，里面有两部分并列放置：
-  · Manager\ —— 管理器（安装器），双击其中的 PBZModManager.exe 即可；
-  · Mod\     —— 模组本体（PBZFog 脚本与面板、随包自带的 UE4SS、dwmapi.dll）。
-安装说明、LICENSE、VERSION 放在最外层。
-
-二、一键安装
-1. 先关闭游戏。
-2. 双击 Velm\Manager\PBZModManager.exe。（整个 Velm 文件夹放哪都行：桌面、D:\Tools 都行，不必放进游戏目录。）
-3. 点「自动检测」找到游戏目录；「使用自带 UE4SS」默认已勾选（它指向 Mod 文件夹）。
-4. 点「安装 / 修复」。完成进游戏后按 F8 打开面板；面板右上角可切换中文 / English。
-
-三、手动安装（不想用管理器时）
-把 Mod 文件夹里的东西拷进游戏：
-1. Mod\ue4ss 文件夹 和 Mod\dwmapi.dll  →  游戏\PBZ\platform\steam\
-2. Mod\PBZFog 文件夹                     →  游戏\PBZ\platform\steam\ue4ss\Mods\
-3. 在 …\ue4ss\Mods\mods.txt 里加一行：PBZFog : 1
-
-四、卸载
-用管理器的「卸载」；或手动删除游戏里的 Mods\PBZFog 目录，并从 mods.txt 去掉 PBZFog 那一行。
-
-五、注意事项
-· 若游戏目录里已有其它注入代理（version.dll / dxgi.dll 等），管理器会提示冲突，确认可共存再继续。
-· 本模组只读写单机画面参数，不含游戏资源、不涉及破解。采用 MIT 许可。
-
-六、更新
-管理器里点「检查更新」可对比最新版本（国内访问 GitHub 可在旁边填代理 http://127.0.0.1:7897）；有新版时到发布页下载新包，按上面步骤覆盖安装即可。
-发布页：https://github.com/1234gfz/Velm/releases
-
-七、安装后，这份下载文件还要不要留
-管理器是把文件「复制」进游戏的，不会搬走或链接。所以安装完之后，这份下载的 Velm 文件夹仍原样保留在你在的地方。你可以删掉它——游戏里已经装好的那份照常能玩。但删掉 Mod 文件夹后，管理器就失去了「重装 / 修复 / 更新」的来源（会提示找不到模组）。建议：要么保留整个 Velm 文件夹，要么至少保留这个压缩包，以备修复或更新；日常游玩并不需要它常驻。
-
-
-================================================================
-
+安装：关闭游戏 → 双击 Manager\PBZModManager.exe → 点「自动检测」→ 点「安装 / 修复」。进游戏后按 F8 呼出面板。
+手动安装（不用管理器）：把 Mod\ue4ss 和 Mod\dwmapi.dll 拷到 游戏\PBZ\platform\steam\；把 Mod\PBZFog 拷到 …\ue4ss\Mods\；在 mods.txt 加一行 PBZFog : 1。
+卸载：管理器点「卸载」，或删掉 Mods\PBZFog 并从 mods.txt 去掉 PBZFog。
+注意：游戏目录若已有 version.dll / dxgi.dll 等注入代理，管理器会提示冲突，确认可共存再继续。本模组只读写单机画面参数，不含游戏资源、不破解；MIT 许可。
+更新：管理器点「检查更新」（国内可在旁边填代理 http://127.0.0.1:7897）；有新版到发布页下载新包覆盖安装：https://github.com/1234gfz/Velm/releases
+装完这份下载还能删吗：能。管理器是把文件复制进游戏，删掉下载的 Velm 文件夹，游戏里已装的那份照常能玩；只是删了 Mod\ 之后管理器就无法再重装 / 修复 / 更新了。建议留着整包或至少留 zip。
 
 【English】
-
-1. What this is
-Unzip and you get a "Velm" folder with two parts side by side:
-  - Manager\ : the installer. Double-click PBZModManager.exe inside it.
-  - Mod\     : the mod itself (PBZFog scripts + panel, the bundled UE4SS, dwmapi.dll).
-The install guide, LICENSE and VERSION sit at the top level.
-
-2. Quick install
-1) Close the game.
-2) Double-click Velm\Manager\PBZModManager.exe. (The Velm folder can live anywhere — Desktop or D:\Tools; it does NOT need to be inside the game folder.)
-3) Click "Auto-detect" to locate the game; "Use bundled UE4SS" is checked by default (it points to the Mod folder).
-4) Click "Install / Repair". In game press F8 to open the panel; the language switch is at the top-right.
-
-3. Manual install (without the manager)
-Copy from the Mod folder into the game:
-1) Mod\ue4ss and Mod\dwmapi.dll  ->  <game>\PBZ\platform\steam\
-2) Mod\PBZFog                    ->  <game>\PBZ\platform\steam\ue4ss\Mods\
-3) Add one line to ...\ue4ss\Mods\mods.txt:  PBZFog : 1
-
-4. Uninstall
-Use the manager's "Uninstall", or delete <game>\...\ue4ss\Mods\PBZFog and remove the "PBZFog" line from mods.txt.
-
-5. Notes
-- If the game folder already contains other inject proxies (version.dll / dxgi.dll, etc.), the manager warns about conflicts; confirm they can coexist before continuing.
-- This mod only reads/writes single-player visual parameters. It contains no game assets and does no cracking. MIT licensed.
-
-6. Update
-Click "Check update" in the manager to compare versions (in China you may need a proxy such as http://127.0.0.1:7897). When a newer version exists, download the new package from the Releases page and reinstall as above.
-Releases: https://github.com/1234gfz/Velm/releases
-
-7. Do I still need this downloaded folder after installing?
-The manager COPIES files into the game; it does not move or link them. So after installing, the downloaded Velm folder stays exactly where it is. You may delete it — the copy already installed in the game keeps working. However, if you delete the Mod folder, the manager loses its source for reinstall/repair/update (it will report the mod can't be found). Recommendation: keep the whole Velm folder, or at least keep the zip, for future repair/update; day-to-day play does not need it.
+Install: close the game -> run Manager\PBZModManager.exe -> click "Auto-detect" -> click "Install / Repair". Press F8 in game to open the panel.
+Manual install: copy Mod\ue4ss and Mod\dwmapi.dll into <game>\PBZ\platform\steam\; copy Mod\PBZFog into ...\ue4ss\Mods\; add a line "PBZFog : 1" to mods.txt.
+Uninstall: use the manager's "Uninstall", or delete Mods\PBZFog and remove the PBZFog line from mods.txt.
+Notes: if the game folder already has inject proxies like version.dll / dxgi.dll, the manager warns about conflicts; confirm they can coexist first. This mod only touches single-player visual parameters, contains no game assets and does no cracking; MIT licensed.
+Update: click "Check update" in the manager (in China you may fill in a proxy such as http://127.0.0.1:7897); when newer, download the new package and reinstall: https://github.com/1234gfz/Velm/releases
+Can I delete this download after installing? Yes. The manager copies files into the game, so deleting the downloaded Velm folder is fine - the copy inside the game keeps working. But if you delete Mod\, the manager can no longer reinstall / repair / update. Keep the whole folder, or at least the zip.

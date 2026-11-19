@@ -59,6 +59,9 @@ public static class Manager
 
     public static bool IsGameRunning() => Process.GetProcessesByName("PBZ").Length > 0;
 
+    // 游戏内已安装的模组目录
+    public static string InstalledModPath(string gameSteam) => Path.Combine(gameSteam, "ue4ss", "Mods", ModName);
+
     // ---------------------------------------------------------------- 状态
 
     public static string StatusText(string gameSteam)

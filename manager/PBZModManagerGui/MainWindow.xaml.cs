@@ -114,33 +114,21 @@ public partial class MainWindow : Window
         try { Process.Start("explorer.exe", g); } catch (Exception ex) { AppendLog("打开失败: " + ex.Message); }
     }
 
-    private void Update_Click(object s, RoutedEventArgs e)
+    // 「使用自带 UE4SS」与「使用我已安装的 UE4SS」互斥：勾一个自动取消另一个
+    private void UseBundle_Checked(object s, RoutedEventArgs e) { if (UseOwn != null && UseOwn.IsChecked == true) UseOwn.IsChecked = false; }
+    private void UseOwn_Checked(object s, RoutedEventArgs e) { if (UseBundle != null && UseBundle.IsChecked == true) UseBundle.IsChecked = false; }
+
+    private void OpenModDir_Click(object s, RoutedEventArgs e)
     {
-        var btn = (System.Windows.Controls.Button)s; btn.IsEnabled = false;
-        var proxy = ProxyBox.Text?.Trim();
-        AppendLog("== 检查更新 ==");
-        Task.Run(() =>
+        var g = GameDirOrNull(); if (g == null) return;
+        var p = Manager.InstalledModPath(g);
+        if (System.IO.Directory.Exists(p))
         {
-            try
-            {
-                var local = Manager.LocalVersion();
-                var latest = Manager.LatestVersion(string.IsNullOrWhiteSpace(proxy) ? null : proxy);
-                var cmp = Manager.CompareVersion(local, latest);
-                if (cmp > 0)
-                {
-                    AppendLog($"发现新版本：{latest}（当前 {local}）。");
-                    AppendLog("请到发布页下载新包并按安装说明覆盖安装：https://github.com/1234gfz/Velm/releases");
-                    try { Process.Start(new ProcessStartInfo("https://github.com/1234gfz/Velm/releases") { UseShellExecute = true }); } catch { }
-                }
-                else if (cmp == 0) AppendLog($"已是最新版本（{local}）。");
-                else AppendLog($"当前版本 {local} 不低于远端 {latest}。");
-            }
-            catch (Exception ex)
-            {
-                AppendLog("检查更新失败: " + ex.Message);
-                AppendLog("（GitHub 直连可能被墙，可填代理再试；或手动打开 https://github.com/1234gfz/Velm/releases）");
-            }
-            finally { Dispatcher.Invoke(() => btn.IsEnabled = true); }
-        });
+            try { Process.Start("explorer.exe", p); } catch (Exception ex) { AppendLog("打开失败: " + ex.Message); }
+        }
+        else
+        {
+            MessageBox.Show("还没安装，或该路径不存在：\n" + p, "打开 mod 目录", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
     }
 }

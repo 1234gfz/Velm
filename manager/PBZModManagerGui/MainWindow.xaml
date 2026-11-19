@@ -35,13 +35,13 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <CheckBox Grid.Column="0" x:Name="UseBundle" Content="使用自带 UE4SS" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <CheckBox Grid.Column="0" x:Name="UseBundle" Content="使用自带 UE4SS" VerticalAlignment="Center" Margin="0,0,10,0" Checked="UseBundle_Checked"/>
                 <TextBlock Grid.Column="1" Text="目录：" VerticalAlignment="Center"/>
                 <TextBox Grid.Column="2" x:Name="Ue4ssPath" VerticalAlignment="Center"/>
                 <Button Grid.Column="3" Content="浏览…" Click="BrowseUe4ss_Click" VerticalAlignment="Center" Margin="8,0,0,0"/>
             </Grid>
             <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                <CheckBox x:Name="UseOwn" Content="使用我已安装的 UE4SS" VerticalAlignment="Center" Margin="0,0,18,0"/>
+                <CheckBox x:Name="UseOwn" Content="使用我已安装的 UE4SS" VerticalAlignment="Center" Margin="0,0,18,0" Checked="UseOwn_Checked"/>
                 <CheckBox x:Name="ForceProxy" Content="允许与其它注入代理 DLL 冲突（--force-proxy）" VerticalAlignment="Center"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
@@ -56,6 +56,7 @@
             <Button Content="安装 / 修复" Click="Install_Click" FontWeight="Bold"/>
             <Button Content="卸载" Click="Uninstall_Click"/>
             <Button Content="打开游戏目录" Click="OpenGameDir_Click"/>
+            <Button Content="打开mod目录" Click="OpenModDir_Click"/>
         </StackPanel>
 
         <TextBox Grid.Row="4" x:Name="LogBox" Margin="0,12,0,0" IsReadOnly="True"
