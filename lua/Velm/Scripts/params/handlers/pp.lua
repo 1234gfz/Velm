@@ -204,6 +204,13 @@ function pp.setParams(list)
     markReconcile(0)   -- 参数表刚变，用户正等着看效果，立刻出队
 end
 
+-- 总开关关闭时调用：把「我们改过的所有字段」无条件还原成原值，
+-- 直到 orig 记录清空为止（pp.poll 每轮重试，避免刚进场景 volumes 还没扫到时漏掉）。
+local revertAllPending = false
+function pp.requestRevertAll()
+    revertAllPending = true
+end
+
 -- ---------------------------------------------------------------- 出队
 
 -- 把「还没写到位的 (字段, 体积)」装进队列。已写过的、值已对的都不装。
@@ -335,6 +342,14 @@ local function writeOne(p, v, nm)
         end
     end
 
+    if field == "LumenSkylightLeaking" and saved[nm] then
+        local rec = saved[nm]
+        local cur0
+        pcall(function() cur0 = s[field] end)
+        log.once("diag:w:" .. tostring(nm), string.format("写诊断 skyleak 原值=%s 写入=%s 当前=%s ov原=%s",
+            tostring(type(rec.v)=="number" and rec.v or rec.v), tostring(val), tostring(cur0), tostring(rec.b)))
+    end
+
     local ok
     if isColor then
         ok = pcall(function()
@@ -458,6 +473,15 @@ function pp.poll()
         lastPoll = now
         refresh()
     end
+    -- ★ 总开关关闭：无条件全量还原（不依赖 reconcile / 队列 / applied 标记）。
+    if revertAllPending then
+        if vols and #vols > 0 then
+            local keys = {}
+            for f in pairs(orig) do keys[#keys + 1] = f end
+            for _, f in ipairs(keys) do pp.revertField(f, true) end
+            if next(orig) == nil then revertAllPending = false end
+        end
+    end
     -- ★ 换代后延迟出队：LoadMap 刚结束时游戏自己还在流式加载、编译 PSO，
     -- 这时候再灌几百次属性写就是雪上加霜。等它喘口气（RECONCILE_DELAY 秒）再开始。
     if reconcileNeeded and now >= reconcileDueAt then
@@ -498,6 +522,7 @@ function pp.revertField(field, force)
     if not saved then return end
     local restored = 0
     local dead = false
+    local diagSk = false
     for _, v in ipairs(vols or {}) do
         if not ue.usable(v) then dead = true; break end
         local nm = nameOf(v)
@@ -505,6 +530,13 @@ function pp.revertField(field, force)
         if rec then
             local okS, s = pcall(function() return v.Settings end)
             if okS and s then
+                if field == "LumenSkylightLeaking" and not diagSk then
+                    diagSk = true
+                    local curB
+                    pcall(function() curB = s[field] end)
+                    log.info(string.format("还原诊断 skyleak 还原前=%s 将写原值=%s ov原=%s",
+                        tostring(curB), tostring(rec.v), tostring(rec.b)))
+                end
                 local okR
                 if rec.c == "RGB" then
                     okR = pcall(function()

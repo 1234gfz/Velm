@@ -28,6 +28,7 @@ local schema = {}
 local params    = {}     -- 全部参数（展平）
 local fogParams = {}     -- handler=="fog" 的子集（钩子要用）
 local master    = true
+local prevMaster = nil   -- 上一轮的总开关状态（用于检测「开→关」并触发全量还原）
 local lastMtime = nil
 local lastResample = nil
 local lastGeneration = nil   -- pp 体积代号，变了就把所有 pp 字段重写一遍
@@ -222,6 +223,11 @@ function schema.poll(force)
         end
     end
     ppH.setParams(ppParams)
+    -- 总开关「由开变关」：显式请求一次全量还原（不等 reconcile，避免刚进场景漏掉）。
+    if (not master) and (prevMaster ~= false) then
+        if ppH.requestRevertAll then pcall(ppH.requestRevertAll) end
+    end
+    prevMaster = master
 
     loaded = true
     log.changed("cfg:count", string.format("参数表: %d 项（雾 %d）master=%s",
