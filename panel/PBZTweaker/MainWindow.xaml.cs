@@ -279,17 +279,17 @@ namespace PBZTweaker
             InitTrayIcon();
 
             var menu = new ContextMenu();
-            var quit = new MenuItem { Header = "退出程序" };
+            var quit = new MenuItem { Header = Ui("退出程序") };
             quit.Click += (s, e) =>
             {
                 try { UnregisterHotKey(_hwnd, HOTKEY_ID); } catch { }
                 Application.Current.Shutdown();
             };
-            var reload = new MenuItem { Header = "重新读取参数表" };
+            var reload = new MenuItem { Header = Ui("重新读取参数表") };
             reload.Click += (s, e) => { LoadJson(); BuildUi(); };
 
-            var resample = new MenuItem { Header = "重新采样后处理原值" };
-            resample.ToolTip = "先把要重采的参数开关关掉，再点这里。下一轮打开开关时，会从游戏当前状态重新采一份原值";
+            var resample = new MenuItem { Header = Ui("重新采样后处理原值") };
+            resample.ToolTip = _lang == "en" ? "Turn off the params you want to resample, then click here. Next time you enable them, originals are re-captured from the game's current state." : "先把要重采的参数开关关掉，再点这里。下一轮打开开关时，会从游戏当前状态重新采一份原值";
             resample.Click += (s, e) =>
             {
                 if (_root == null) return;
@@ -297,7 +297,7 @@ namespace PBZTweaker
                 try { n = _root["resample"]?.GetValue<int>() ?? 0; } catch { }
                 _root["resample"] = JsonValue.Create(n + 1);
                 if (SaveJson())
-                    Status.Text = "已清空后处理原值记录 · 下次打开开关会重新采样";
+                    Status.Text = _lang == "en" ? "PP originals cleared · re-sampled next time you enable" : "已清空后处理原值记录 · 下次打开开关会重新采样";
             };
             menu.Items.Add(resample);
             menu.Items.Add(reload);
@@ -306,10 +306,10 @@ namespace PBZTweaker
             // 面板发现游戏后把它拉回「高于正常」。不需要持续轮询——游戏只设一次。
             var pin = new MenuItem
             {
-                Header = "把游戏进程优先级锁为「高于正常」",
+                Header = Ui("把游戏进程优先级锁为「高于正常」"),
                 IsCheckable = true,
                 IsChecked = PinPriorityEnabled,
-                ToolTip = "游戏启动时会把自身优先级设为 High，可能拖慢系统。勾选后面板会把游戏拉回 AboveNormal。"
+                ToolTip = _lang == "en" ? "The game sets itself to High at launch which may slow the system. With this checked, the panel pulls it back to AboveNormal." : "游戏启动时会把自身优先级设为 High，可能拖慢系统。勾选后面板会把游戏拉回 AboveNormal。"
             };
             pin.Click += (s, e) =>
             {
@@ -351,7 +351,7 @@ namespace PBZTweaker
                         hkOk ? 0 : System.Runtime.InteropServices.Marshal.GetLastWin32Error()));
             }
             catch { }
-            try { SubText.Text = _hotkeyName + " 呼出面板"; } catch { }
+            try { SubText.Text = _lang == "en" ? (_hotkeyName + " to open") : (_hotkeyName + " 呼出面板"); } catch { }
         }
 
         // ------------------------------------------------------------ 托盘图标
@@ -365,7 +365,7 @@ namespace PBZTweaker
             {
                 _tray = new System.Windows.Forms.NotifyIcon
                 {
-                    Text = "影之刃零 调参器（" + _hotkeyName + " 呼出面板）",
+                    Text = _lang == "en" ? ("Velm Tweaker (" + _hotkeyName + " to open)") : ("影之刃零 调参器（" + _hotkeyName + " 呼出面板）"),
                     Visible = true,
                     Icon = MakeTrayIcon(),
                 };
@@ -392,7 +392,7 @@ namespace PBZTweaker
                     it.Click += (s, e) => Dispatcher.Invoke(() =>
                     {
                         SetHotkey(label);
-                        hkItem.Text = "快捷键（当前：" + _hotkeyName + "）";
+                        hkItem.Text = _lang == "en" ? ("Hotkey (current: " + _hotkeyName + ")") : ("快捷键（当前：" + _hotkeyName + "）");
                     });
                     hkItem.DropDownItems.Add(it);
                 }
@@ -640,7 +640,7 @@ namespace PBZTweaker
             if (string.IsNullOrEmpty(spec)) return;
 
             _gameHwnd = FindGameWindow();
-            if (_gameHwnd == IntPtr.Zero) { Status.Text = "找不到游戏窗口，分辨率没改"; return; }
+            if (_gameHwnd == IntPtr.Zero) { Status.Text = _lang == "en" ? "Game window not found, resolution unchanged" : "找不到游戏窗口，分辨率没改"; return; }
 
             if (spec == "none")
             {
@@ -663,7 +663,7 @@ namespace PBZTweaker
                 bool same = ReadCurrentMode(out cur) && cur.dmPelsWidth == w && cur.dmPelsHeight == h;
                 if (!same && !SwitchDisplayMode(w, h))
                 {
-                    Status.Text = string.Format("驱动不支持 {0}×{1} 这个模式", w, h);
+                    Status.Text = _lang == "en" ? string.Format("Driver does not support {0}×{1}", w, h) : string.Format("驱动不支持 {0}×{1} 这个模式", w, h);
                     return;
                 }
                 // 分辨率已经变了，窗口按新的「屏幕」铺满，桌面和任务栏自然就不见了
@@ -673,7 +673,7 @@ namespace PBZTweaker
                 ds |= WS_POPUP;
                 SetWindowLong(_gameHwnd, GWL_STYLE, ds);
                 SetWindowPos(_gameHwnd, IntPtr.Zero, 0, 0, nw, nh, SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOACTIVATE);
-                Status.Text = string.Format("已切到 {0}×{1} · 退出面板会自动还原", w, h);
+                Status.Text = _lang == "en" ? string.Format("Switched to {0}×{1} · reverts when the panel exits", w, h) : string.Format("已切到 {0}×{1} · 退出面板会自动还原", w, h);
                 return;
             }
 
@@ -739,7 +739,7 @@ namespace PBZTweaker
             ApplyInteractiveStyle(true);
             try { Activate(); SetForegroundWindow(_hwnd); Focus(); } catch { }
             _interactive = true;
-            SubText.Text = "F8 收起并交还鼠标 · 拖动标题可移动";
+            SubText.Text = _lang == "en" ? "F8 to hide and release mouse · drag the title to move" : "F8 收起并交还鼠标 · 拖动标题可移动";
         }
 
         private void HideOverlay()
@@ -749,7 +749,7 @@ namespace PBZTweaker
             ApplyInteractiveStyle(false);
             if (_gameHwnd == IntPtr.Zero) _gameHwnd = FindGameWindow();
             if (_gameHwnd != IntPtr.Zero) { try { SetForegroundWindow(_gameHwnd); } catch { } }
-            SubText.Text = _hotkeyName + " 呼出面板";
+            SubText.Text = _lang == "en" ? (_hotkeyName + " to open") : (_hotkeyName + " 呼出面板");
         }
 
         // ------------------------------------------------------------ 热键（可配置，支持 Ctrl/Alt/Shift 组合）
@@ -832,7 +832,7 @@ namespace PBZTweaker
             }
             _hotkeyMods = mods; _hotkeyVk = vk; _hotkeyName = name;
             try { if (_root != null) { _root["hotkey"] = JsonValue.Create(name); SaveJson(); } } catch { }
-            try { SubText.Text = name + " 呼出面板"; } catch { }
+            try { SubText.Text = _lang == "en" ? (name + " to open") : (name + " 呼出面板"); } catch { }
             try { if (_tray != null) _tray.Text = "影之刃零 调参器（" + name + " 呼出面板）"; } catch { }
             LogStartup("热键已设为 " + name);
         }
@@ -887,7 +887,7 @@ namespace PBZTweaker
             }
             catch (Exception ex)
             {
-                Status.Text = "参数表读取失败: " + ex.Message;
+                Status.Text = (_lang == "en" ? "Failed to read parameter table: " : "参数表读取失败: ") + ex.Message;
                 _root = null;
             }
         }
@@ -953,7 +953,7 @@ namespace PBZTweaker
             if (SaveJson())
             {
                 _dirty = false;
-                ApplyBtn.Content = "应用";
+                ApplyBtn.Content = Ui("应用");
                 Status.Text = on ? Ui("整体效果已开启") : Ui("整体效果已关闭 · 全部回到游戏原版（数值都留着）");
                 // 分辨率/窗口不跟总开关联动：避免对比效果时窗口反复重建、屏幕黑一下。
                 if (!on) { /* 不改显示模式 */ }
@@ -963,7 +963,7 @@ namespace PBZTweaker
         private void MarkDirty()
         {
             _dirty = true;
-            ApplyBtn.Content = "应用 •";
+            ApplyBtn.Content = Ui("应用 •");
             Status.Text = Ui("有未应用的改动");
         }
 
@@ -972,7 +972,7 @@ namespace PBZTweaker
             if (SaveJson())
             {
                 _dirty = false;
-                ApplyBtn.Content = "应用";
+                ApplyBtn.Content = Ui("应用");
                 Status.Text = _lang == "en"
                     ? ("Applied " + DateTime.Now.ToString("HH:mm:ss") + " · " + _paramCount + " items")
                     : ("已应用 " + DateTime.Now.ToString("HH:mm:ss") + " · " + _paramCount + " 项");
@@ -996,7 +996,7 @@ namespace PBZTweaker
         private void Revert_Click(object sender, RoutedEventArgs e)
         {
             _dirty = false;
-            ApplyBtn.Content = "应用";
+            ApplyBtn.Content = Ui("应用");
             LoadJson();
             BuildUi();
         }
@@ -1015,7 +1015,7 @@ namespace PBZTweaker
             }
             catch (Exception ex)
             {
-                Status.Text = "保存失败: " + ex.Message;
+                Status.Text = (_lang == "en" ? "Save failed: " : "保存失败: ") + ex.Message;
                 return false;
             }
         }
@@ -1055,7 +1055,7 @@ namespace PBZTweaker
                 if (SaveJson())
                 {
                     _dirty = false;
-                    ApplyBtn.Content = "应用";
+                    ApplyBtn.Content = Ui("应用");
                     Status.Text = _lang == "en" ? ("Preset \"" + name + "\" applied") : ("已用预设「" + name + "」覆盖并应用");
                 }
             }
@@ -1145,7 +1145,7 @@ namespace PBZTweaker
             ApplyChrome();
 
             _paramCount = 0;
-            if (_root["groups"] is not JsonArray groups) { Status.Text = "参数表里没有 groups"; return; }
+            if (_root["groups"] is not JsonArray groups) { Status.Text = _lang == "en" ? "No 'groups' in parameter table" : "参数表里没有 groups"; return; }
 
             foreach (var gnode in groups)
             {
@@ -1227,7 +1227,7 @@ namespace PBZTweaker
                 Background = Brushes.Transparent,
                 Cursor = Cursors.Hand,
                 Child = tb,
-                ToolTip = "点一下收起 / 展开这一组"
+                ToolTip = _lang == "en" ? "Click to collapse / expand this group" : "点一下收起 / 展开这一组"
             };
             target.Visibility = collapsed ? Visibility.Collapsed : Visibility.Visible;
             b.MouseLeftButtonDown += (s2, e2) =>
@@ -1350,7 +1350,7 @@ namespace PBZTweaker
                 {
                     Height = 26, CornerRadius = new CornerRadius(6),
                     Cursor = Cursors.Hand, Margin = new Thickness(0, 0, 0, 0),
-                    ToolTip = "点一下展开 / 收起 RGB 滑块"
+                    ToolTip = _lang == "en" ? "Click to expand / collapse RGB sliders" : "点一下展开 / 收起 RGB 滑块"
                 };
                 var valText = new TextBlock
                 {
@@ -1688,7 +1688,7 @@ namespace PBZTweaker
                         BorderBrush = Brush("#33FFFFFF"),
                         BorderThickness = new Thickness(1),
                         Cursor = Cursors.Hand,
-                        ToolTip = "切换这个参数的写法：绝对 / 比例（原值 × %） / 偏移（原值 + Δ）"
+                        ToolTip = Ui("切换这个参数的写法：绝对 / 比例（原值 × %） / 偏移（原值 + Δ）")
                     };
                     modeBtn.Click += (s, e) =>
                     {
@@ -1869,7 +1869,7 @@ namespace PBZTweaker
             _ => _lang == "en" ? "Absolute (fixed value)" : "绝对（写死一个值）"
         };
 
-        private static Button MakeResetButton(Action onClick)
+        private Button MakeResetButton(Action onClick)
         {
             var b = new Button
             {
@@ -1882,7 +1882,7 @@ namespace PBZTweaker
                 Foreground = Brush(CTextDim),
                 Background = Brushes.Transparent,
                 BorderThickness = new Thickness(0),
-                ToolTip = "恢复默认（也可以双击左边的名称）"
+                ToolTip = _lang == "en" ? "Reset to default (or double-click the name)" : "恢复默认（也可以双击左边的名称）"
             };
             b.Click += (s, e) => onClick();
             return b;
