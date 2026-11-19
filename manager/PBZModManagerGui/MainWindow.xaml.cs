@@ -111,4 +111,34 @@ public partial class MainWindow : Window
         var g = GameDirOrNull(); if (g == null) return;
         try { Process.Start("explorer.exe", g); } catch (Exception ex) { AppendLog("打开失败: " + ex.Message); }
     }
+
+    private void Update_Click(object s, RoutedEventArgs e)
+    {
+        var btn = (System.Windows.Controls.Button)s; btn.IsEnabled = false;
+        var proxy = ProxyBox.Text?.Trim();
+        AppendLog("== 检查更新 ==");
+        Task.Run(() =>
+        {
+            try
+            {
+                var local = Manager.LocalVersion();
+                var latest = Manager.LatestVersion(string.IsNullOrWhiteSpace(proxy) ? null : proxy);
+                var cmp = Manager.CompareVersion(local, latest);
+                if (cmp > 0)
+                {
+                    AppendLog($"发现新版本：{latest}（当前 {local}）。");
+                    AppendLog("请到发布页下载新包并按安装说明覆盖安装：https://github.com/1234gfz/Velm/releases");
+                    try { Process.Start(new ProcessStartInfo("https://github.com/1234gfz/Velm/releases") { UseShellExecute = true }); } catch { }
+                }
+                else if (cmp == 0) AppendLog($"已是最新版本（{local}）。");
+                else AppendLog($"当前版本 {local} 不低于远端 {latest}。");
+            }
+            catch (Exception ex)
+            {
+                AppendLog("检查更新失败: " + ex.Message);
+                AppendLog("（GitHub 直连可能被墙，可填代理再试；或手动打开 https://github.com/1234gfz/Velm/releases）");
+            }
+            finally { Dispatcher.Invoke(() => btn.IsEnabled = true); }
+        });
+    }
 }

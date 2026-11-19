@@ -1,0 +1,32 @@
+Velm（小维）· 影之刃零 画面调参模组 —— 安装说明 / Install Guide
+================================================================
+
+【一键安装 / Quick install】
+1. 关闭游戏 / Close the game.
+2. 双击 PBZModManager.exe / Double-click PBZModManager.exe.
+3. 点「自动检测」找到游戏目录；保持「使用自带 UE4SS」勾选（已默认勾好）。
+   Click "Auto-detect" for the game folder; keep "Use bundled UE4SS" checked (default).
+4. 点「安装 / 修复」。进游戏后按 F8 打开面板；面板右上角可切换 中文 / English。
+   Click "Install / Repair". In game press F8 to open the panel; language switch is at the top-right.
+
+【手动安装 / Manual install（不想用管理器 / without the manager）】
+1. 把本目录的 ue4ss 文件夹 和 dwmapi.dll 复制到 / copy into：
+   <游戏>\PBZ\platform\steam\
+2. 把 PBZFog 文件夹复制到 / copy into：
+   <游戏>\PBZ\platform\steam\ue4ss\Mods\
+3. 在 …\ue4ss\Mods\mods.txt 里加一行 / add one line：PBZFog : 1
+
+【卸载 / Uninstall】
+管理器点「卸载」；或手动删除 Mods\PBZFog 目录，并从 mods.txt 去掉 PBZFog 那行。
+Use the manager's "Uninstall", or delete Mods\PBZFog and remove the "PBZFog" line from mods.txt.
+
+【注意 / Notes】
+- 若游戏目录已有其它注入代理（version.dll / dxgi.dll 等），管理器会提示冲突，确认共存再继续。
+  If other inject proxies exist (version.dll / dxgi.dll …), the manager warns; confirm to coexist first.
+- 只读写单机画面参数，不含游戏资源、不涉及破解。MIT 许可。
+  Single-player visual params only; no game assets, no cracking. MIT license.
+
+【更新 / Update】
+管理器里点「检查更新」可比对最新版本；有新版时到发布页下载新包按上面步骤覆盖安装即可。
+Use "Check update" in the manager to compare versions; when newer, download the latest package and reinstall as above.
+发布页 / Releases: https://github.com/1234gfz/Velm/releases

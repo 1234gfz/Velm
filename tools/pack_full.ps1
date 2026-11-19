@@ -31,6 +31,7 @@ Write-Host "发布面板 -> PBZFog\PBZTweaker ..." -ForegroundColor Yellow
 Publish-App (Join-Path $repo 'panel\PBZTweaker') (Join-Path $Out 'PBZFog\PBZTweaker')
 Write-Host "发布管理器(窗口版) -> 根目录 ..." -ForegroundColor Yellow
 Publish-App (Join-Path $repo 'manager\PBZModManagerGui') $Out
+Get-ChildItem $Out -Recurse -Filter *.pdb -File -ErrorAction SilentlyContinue | Remove-Item -Force
 
 Write-Host "复制模组脚本 + 参数表 ..." -ForegroundColor Yellow
 robocopy (Join-Path $repo 'lua\PBZFog\Scripts') (Join-Path $Out 'PBZFog\Scripts') /E /NFL /NDL /NJH /NJS /NP | Out-Null
@@ -39,14 +40,13 @@ $presetJson = Join-Path $repo 'lua\PBZFog\pbz_presets.json'
 if (Test-Path $presetJson) { Copy-Item $presetJson (Join-Path $Out 'PBZFog\pbz_presets.json') -Force }
 $langDir = Join-Path $repo 'lua\PBZFog\lang'
 if (Test-Path $langDir) { robocopy $langDir (Join-Path $Out 'PBZFog\lang') /E /NFL /NDL /NJH /NJS /NP | Out-Null }
-$presetDir = Join-Path $repo 'presets'
-if (Test-Path $presetDir) { robocopy $presetDir (Join-Path $Out 'presets') /E /NFL /NDL /NJH /NJS /NP | Out-Null }
 
 Write-Host "复制文档 ..." -ForegroundColor Yellow
-foreach ($f in @('README.md', 'LICENSE', 'CHANGELOG.md', 'VERSION')) {
+foreach ($f in @('LICENSE', 'CHANGELOG.md', 'VERSION')) {
     if (Test-Path (Join-Path $repo $f)) { Copy-Item (Join-Path $repo $f) (Join-Path $Out $f) -Force }
 }
-robocopy (Join-Path $repo 'docs') (Join-Path $Out 'docs') /E /NFL /NDL /NJH /NJS /NP | Out-Null
+$guide = Join-Path $repo 'packaging\安装说明.txt'
+if (Test-Path $guide) { Copy-Item $guide (Join-Path $Out '安装说明.txt') -Force }
 
 if ($WithUE4SS) {
     $v = Join-Path $repo 'vendor\ue4ss'

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -199,5 +200,36 @@ public static class Manager
             Directory.CreateDirectory(Path.GetDirectoryName(dst)!);
             File.Copy(f, dst, true);
         }
+    }
+
+    // ---------------------------------------------------------------- 版本检查
+
+    public static string LocalVersion()
+    {
+        try { var p = Path.Combine(AppContext.BaseDirectory, "VERSION"); if (File.Exists(p)) return File.ReadAllText(p).Trim(); } catch { }
+        return "?";
+    }
+
+    // 读取仓库里的最新版本号；proxy 形如 http://127.0.0.1:7897，可为空。失败抛异常。
+    public static string LatestVersion(string? proxy = null)
+    {
+        var url = "https://raw.githubusercontent.com/1234gfz/Velm/main/VERSION";
+        using var handler = new HttpClientHandler();
+        if (!string.IsNullOrWhiteSpace(proxy))
+        {
+            var uri = new Uri(proxy!.Contains("://") ? proxy : "http://" + proxy);
+            handler.Proxy = new System.Net.WebProxy(uri);
+            handler.UseProxy = true;
+        }
+        using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(20) };
+        http.DefaultRequestHeaders.UserAgent.ParseAdd("Velm-Updater");
+        return http.GetStringAsync(url).GetAwaiter().GetResult().Trim();
+    }
+
+    // 返回 1 表示 remote 更新，0 相同，-1 本地更新或无法比较。
+    public static int CompareVersion(string local, string remote)
+    {
+        if (Version.TryParse(local, out var l) && Version.TryParse(remote, out var r)) return r.CompareTo(l);
+        return string.Equals(local, remote) ? 0 : 1;
     }
 }
