@@ -17,7 +17,10 @@
 | `PBZModManager` | 安装 / 检测修复 / 卸载 管理器（独立 exe） |
 
 ## 安装
-### 方式 A：管理器（命令行 MVP，窗口版制作中）
+### 方式 A：管理器（窗口版 / 命令行）
+**窗口版（推荐）**：双击 `PBZModManager.exe`（与 `PBZFog` 文件夹同层）→「自动检测」或选游戏目录 → 勾选「使用自带 UE4SS」（选解压目录）或「使用我已安装的 UE4SS」→ 点「安装 / 修复」。
+
+**命令行版**：
 ```powershell
 # 查看状态（自动定位 Steam 库，也可 --game 指定 "…\platform\steam"）
 PBZModManager.exe status

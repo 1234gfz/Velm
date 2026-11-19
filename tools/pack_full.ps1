@@ -29,8 +29,8 @@ function Publish-App($proj, $dst) {
 
 Write-Host "发布面板 -> PBZFog\PBZTweaker ..." -ForegroundColor Yellow
 Publish-App (Join-Path $repo 'panel\PBZTweaker') (Join-Path $Out 'PBZFog\PBZTweaker')
-Write-Host "发布管理器 -> 根目录 ..." -ForegroundColor Yellow
-Publish-App (Join-Path $repo 'manager\PBZModManager') $Out
+Write-Host "发布管理器(窗口版) -> 根目录 ..." -ForegroundColor Yellow
+Publish-App (Join-Path $repo 'manager\PBZModManagerGui') $Out
 
 Write-Host "复制模组脚本 + 参数表 ..." -ForegroundColor Yellow
 robocopy (Join-Path $repo 'lua\PBZFog\Scripts') (Join-Path $Out 'PBZFog\Scripts') /E /NFL /NDL /NJH /NJS /NP | Out-Null

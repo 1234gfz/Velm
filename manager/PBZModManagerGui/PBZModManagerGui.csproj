@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>PBZModManager</AssemblyName>
+    <RootNamespace>PBZModManagerGui</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- 复用命令行版的同一份核心逻辑，避免两套实现 -->
+    <Compile Include="..\PBZModManager\Manager.cs" Link="Manager.cs" />
+  </ItemGroup>
+</Project>
