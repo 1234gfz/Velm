@@ -16,7 +16,7 @@ const luaparse = require('luaparse');
 
 // UE4SS 把「模块根」定为 mod 的 Scripts 目录（`;{}/?.lua` 里的 {} 就是它），
 // 所以 require("core.log") → Scripts/core/log.lua。检查脚本必须用同一个根。
-const ROOT = process.argv[2] || path.join(__dirname, '..', 'lua', 'PBZFog', 'Scripts');
+const ROOT = process.argv[2] || path.join(__dirname, '..', 'lua', 'Velm', 'Scripts');
 
 const errors = [];
 const warnings = [];

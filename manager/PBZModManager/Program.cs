@@ -40,7 +40,7 @@ internal static class Program
                         var defSrc = modRoot != null ? Path.Combine(modRoot, Manager.ModName)
                                                      : Path.Combine(AppContext.BaseDirectory, Manager.ModName);
                         var src = o.Source ?? defSrc;
-                        Log("== 安装/修复 PBZFog ==");
+                        Log("== 安装/修复 Velm ==");
                         Log("游戏: " + g);
                         Log("源  : " + src);
                         Manager.Install(g, src, o.Ue4ss, o.UseOwn, o.ForceProxy, o.DryRun, Log);
@@ -50,7 +50,7 @@ internal static class Program
                     {
                         var g = Manager.ResolveGame(o.Game, out _);
                         if (g == null) { Log("未找到游戏目录，请用 --game 指定。"); return 2; }
-                        Log("== 卸载 PBZFog ==");
+                        Log("== 卸载 Velm ==");
                         Manager.Uninstall(g, o.DryRun, Log);
                         return 0;
                     }
@@ -64,9 +64,9 @@ internal static class Program
 
     private static void PrintHelp()
     {
-        Console.WriteLine("PBZModManager（命令行）— PBZFog 安装/检测/卸载");
+        Console.WriteLine("PBZModManager（命令行）— Velm 安装/检测/卸载");
         Console.WriteLine("  status   [--game <dir>]");
-        Console.WriteLine("  install  [--game <dir>] [--source <PBZFog目录>] [--ue4ss <自带UE4SS目录>] [--use-own-ue4ss] [--force-proxy] [--dry-run]");
+        Console.WriteLine("  install  [--game <dir>] [--source <Velm目录>] [--ue4ss <自带UE4SS目录>] [--use-own-ue4ss] [--force-proxy] [--dry-run]");
         Console.WriteLine("  repair   （同 install）");
         Console.WriteLine("  uninstall[--game <dir>] [--dry-run]");
     }

@@ -4,11 +4,11 @@
 
 ## 0. 背景与目标
 - 《影之刃零》(Phantom Blade Zero) 单机 ARPG；玩家普遍抱怨近景「黑乎乎、雾蒙蒙」。
-- 作者自制的调参方案：`PBZFog`（UE4SS Lua 模组，改雾/后处理/光照参数）+ `PBZTweaker`（WPF 面板）。已通关一周目实测可用。
+- 作者自制的调参方案：`Velm`（UE4SS Lua 模组，改雾/后处理/光照参数）+ `PBZTweaker`（WPF 面板）。已通关一周目实测可用。
 - 目标：整理成**可公开分发、可长期维护**的开源项目，并附几套预设。
 
 ## 1. 产品形态（三件套，一个包发布）
-- `PBZFog`：UE4SS Lua 模组（核心）。
+- `Velm`：UE4SS Lua 模组（核心）。
 - `PBZTweaker`：WPF 调参面板（F8 / 系统托盘）。
 - `PBZModManager`：**独立** C# 管理器 exe（安装 / 检测修复 / 卸载 / 版本检测）。
 - `presets/`：3~5 套预设（主题化）。

@@ -1,6 +1,6 @@
 ﻿# 组装“玩家发布包”：Velm\（管理器 + mod 本体 + 说明，管理器与 mod 并列）。
 #   _release\Velm\Manager\PBZModManager.exe       ← 玩家双击这个
-#   _release\Velm\Mod\PBZFog\ + ue4ss\ + dwmapi.dll  ← mod 本体（管理器自动装到游戏）
+#   _release\Velm\Mod\Velm\ + ue4ss\ + dwmapi.dll  ← mod 本体（管理器自动装到游戏）
 #   _release\Velm\安装说明.txt / LICENSE / VERSION / CHANGELOG.md
 param(
     [string]$Out = '',
@@ -12,7 +12,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $repo = Resolve-Path (Join-Path $PSScriptRoot '..')
 if ([string]::IsNullOrWhiteSpace($Out)) { $Out = Join-Path $repo '_release' }
-$modVerFile = Join-Path $repo 'lua\PBZFog\VERSION'
+$modVerFile = Join-Path $repo 'lua\Velm\VERSION'
 $ver = (Get-Content $modVerFile -ErrorAction SilentlyContinue | Select-Object -First 1); if (-not $ver) { $ver = '0.0.0' }
 Write-Host "版本 $ver -> $Out\Velm  (自包含=$([bool]$SelfContained))" -ForegroundColor Cyan
 if (Test-Path $Out) { Remove-Item $Out -Recurse -Force }
@@ -20,7 +20,7 @@ $Pkg = Join-Path $Out 'Velm'
 $mgr = Join-Path $Pkg 'Manager'
 $mod = Join-Path $Pkg 'Mod'
 New-Item -ItemType Directory -Path $mgr -Force | Out-Null
-New-Item -ItemType Directory -Path (Join-Path $mod 'PBZFog') -Force | Out-Null
+New-Item -ItemType Directory -Path (Join-Path $mod 'Velm') -Force | Out-Null
 
 function Publish-App($proj, $dst) {
     if ($SelfContained) {
@@ -31,22 +31,22 @@ function Publish-App($proj, $dst) {
     if ($LASTEXITCODE -ne 0) { throw "publish 失败: $proj ($LASTEXITCODE)" }
 }
 
-Write-Host "发布面板 -> Mod\PBZFog\PBZTweaker ..." -ForegroundColor Yellow
-Publish-App (Join-Path $repo 'panel\PBZTweaker') (Join-Path $mod 'PBZFog\PBZTweaker')
+Write-Host "发布面板 -> Mod\Velm\PBZTweaker ..." -ForegroundColor Yellow
+Publish-App (Join-Path $repo 'panel\PBZTweaker') (Join-Path $mod 'Velm\PBZTweaker')
 Write-Host "发布管理器(窗口版) -> Manager\ ..." -ForegroundColor Yellow
 Publish-App (Join-Path $repo 'manager\PBZModManagerGui') $mgr
 Get-ChildItem $Pkg -Recurse -Filter *.pdb -File -ErrorAction SilentlyContinue | Remove-Item -Force
 $mv = Join-Path $repo 'manager\VERSION'; if (Test-Path $mv) { Copy-Item $mv (Join-Path $mgr 'VERSION') -Force }
 
 Write-Host "复制模组脚本 + 参数表 ..." -ForegroundColor Yellow
-robocopy (Join-Path $repo 'lua\PBZFog\Scripts') (Join-Path $mod 'PBZFog\Scripts') /E /NFL /NDL /NJH /NJS /NP | Out-Null
-Copy-Item (Join-Path $repo 'lua\PBZFog\pbz_tweaker.json') (Join-Path $mod 'PBZFog\pbz_tweaker.json') -Force
-$presetJson = Join-Path $repo 'lua\PBZFog\pbz_presets.json'
-if (Test-Path $presetJson) { Copy-Item $presetJson (Join-Path $mod 'PBZFog\pbz_presets.json') -Force }
-$langDir = Join-Path $repo 'lua\PBZFog\lang'
-if (Test-Path $langDir) { robocopy $langDir (Join-Path $mod 'PBZFog\lang') /E /NFL /NDL /NJH /NJS /NP | Out-Null }
-$modVer = Join-Path $repo 'lua\PBZFog\VERSION'
-if (Test-Path $modVer) { Copy-Item $modVer (Join-Path $mod 'PBZFog\VERSION') -Force }
+robocopy (Join-Path $repo 'lua\Velm\Scripts') (Join-Path $mod 'Velm\Scripts') /E /NFL /NDL /NJH /NJS /NP | Out-Null
+Copy-Item (Join-Path $repo 'lua\Velm\pbz_tweaker.json') (Join-Path $mod 'Velm\pbz_tweaker.json') -Force
+$presetJson = Join-Path $repo 'lua\Velm\pbz_presets.json'
+if (Test-Path $presetJson) { Copy-Item $presetJson (Join-Path $mod 'Velm\pbz_presets.json') -Force }
+$langDir = Join-Path $repo 'lua\Velm\lang'
+if (Test-Path $langDir) { robocopy $langDir (Join-Path $mod 'Velm\lang') /E /NFL /NDL /NJH /NJS /NP | Out-Null }
+$modVer = Join-Path $repo 'lua\Velm\VERSION'
+if (Test-Path $modVer) { Copy-Item $modVer (Join-Path $mod 'Velm\VERSION') -Force }
 
 Write-Host "复制说明 / 许可 ..." -ForegroundColor Yellow
 foreach ($f in @('LICENSE', 'CHANGELOG.md')) {

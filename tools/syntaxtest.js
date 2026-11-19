@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 // 用本机真 Lua 5.4 对整棵模块树做语法检查（loadfile，只编译不执行）。
-// 用法: node syntaxtest.js [目录，默认 ../lua/PBZFog/Scripts]
+// 用法: node syntaxtest.js [目录，默认 ../lua/Velm/Scripts]
 // 可用环境变量 LUA_EXE 指定解释器路径。
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
-const root = path.resolve(process.argv[2] || path.join(__dirname, '..', 'lua', 'PBZFog', 'Scripts'));
+const root = path.resolve(process.argv[2] || path.join(__dirname, '..', 'lua', 'Velm', 'Scripts'));
 const lua = process.env.LUA_EXE || 'C:\\Users\\MSHY03\\AppData\\Local\\Programs\\Lua\\bin\\lua.exe';
 
 if (!fs.existsSync(lua)) {

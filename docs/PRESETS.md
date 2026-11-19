@@ -1,7 +1,7 @@
 # 预设（Presets）
 
 ## 是什么
-面板顶部可以把当前所有参数值存成一套「预设」，之后一键切换。预设文件是 `pbz_presets.json`，与 `pbz_tweaker.json` 放在同一目录（即 `PBZFog/`）。
+面板顶部可以把当前所有参数值存成一套「预设」，之后一键切换。预设文件是 `pbz_presets.json`，与 `pbz_tweaker.json` 放在同一目录（即 `Velm/`）。
 
 ## 格式
 ```json

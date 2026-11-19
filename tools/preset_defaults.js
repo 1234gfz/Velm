@@ -5,8 +5,8 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
-const CFG = path.join(ROOT, 'lua', 'PBZFog', 'pbz_tweaker.json');
-const OUT = path.join(ROOT, 'lua', 'PBZFog', 'pbz_presets.json');
+const CFG = path.join(ROOT, 'lua', 'Velm', 'pbz_tweaker.json');
+const OUT = path.join(ROOT, 'lua', 'Velm', 'pbz_presets.json');
 const NAME = process.argv[2] || '默认（游戏原版）';
 
 const d = JSON.parse(fs.readFileSync(CFG, 'utf8'));

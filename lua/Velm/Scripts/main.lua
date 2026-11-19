@@ -1,4 +1,4 @@
--- PBZFog 入口：装配 + 主循环。
+-- Velm 入口：装配 + 主循环。
 --
 -- 这是唯一允许创建循环的地方。所有具体逻辑都在模块里，这里只做装配和节拍。
 --
@@ -276,6 +276,6 @@ local function step()
     return false
 end
 
-log.info("PBZFog 已加载（模块化版本）")
+log.info("Velm 已加载（模块化版本）")
 
 LoopInGameThreadWithDelay(TICK_MS, step)

@@ -12,13 +12,13 @@
 ## 组成
 | 组件 | 说明 |
 |---|---|
-| `PBZFog` | UE4SS Lua 模组（核心） |
+| `Velm` | UE4SS Lua 模组（核心） |
 | `PBZTweaker` | WPF 调参面板（F8 / 系统托盘） |
 | `PBZModManager` | 安装 / 检测修复 / 卸载 管理器（独立 exe） |
 
 ## 安装
 ### 方式 A：管理器（窗口版 / 命令行）
-**窗口版（推荐）**：双击 `PBZModManager.exe`（与 `PBZFog` 文件夹同层）→「自动检测」或选游戏目录 → 勾选「使用自带 UE4SS」（选解压目录）或「使用我已安装的 UE4SS」→ 点「安装 / 修复」。
+**窗口版（推荐）**：双击 `PBZModManager.exe`（与 `Velm` 文件夹同层）→「自动检测」或选游戏目录 → 勾选「使用自带 UE4SS」（选解压目录）或「使用我已安装的 UE4SS」→ 点「安装 / 修复」。
 
 **命令行版**：
 ```powershell
@@ -33,12 +33,12 @@ PBZModManager.exe install --use-own-ue4ss
 # 卸载
 PBZModManager.exe uninstall
 ```
-管理器会：检测代理 DLL 冲突（`dwmapi.dll`/`version.dll`/`dxgi.dll`，冲突时需 `--force-proxy` 确认）、改前**自动备份**、拷贝模组、在 `mods.txt` 加 `PBZFog : 1`；**游戏运行时会拒绝改动**。
+管理器会：检测代理 DLL 冲突（`dwmapi.dll`/`version.dll`/`dxgi.dll`，冲突时需 `--force-proxy` 确认）、改前**自动备份**、拷贝模组、在 `mods.txt` 加 `Velm : 1`；**游戏运行时会拒绝改动**。
 
 ### 方式 B：手动
 1. 确保游戏已安装 [UE4SS](https://github.com/UE4SS-RE/RE-UE4SS)（推荐版本见 Releases）。
-2. 把 `PBZFog` 文件夹放进 `<游戏>\platform\steam\ue4ss\Mods\`。
-3. 打开 `ue4ss\Mods\mods.txt`，加一行 `PBZFog : 1`。
+2. 把 `Velm` 文件夹放进 `<游戏>\platform\steam\ue4ss\Mods\`。
+3. 打开 `ue4ss\Mods\mods.txt`，加一行 `Velm : 1`。
 4. 进游戏后按 **F8** 呼出面板（或点系统托盘的圆点图标）。
 
 ## 使用
@@ -59,7 +59,7 @@ PBZModManager.exe uninstall
 # 跑离线测试（需要本机 Lua 5.4；可设 $env:LUA_EXE）
 powershell -ExecutionPolicy Bypass -File tools\run_tests.ps1
 
-# 生成可发布目录 _release\PBZFog
+# 生成可发布目录 _release\Velm
 powershell -ExecutionPolicy Bypass -File tools\package_release.ps1
 ```
 详见 [docs/RELEASE_PLAN.md](docs/RELEASE_PLAN.md)、[docs/TESTING.md](docs/TESTING.md)。

@@ -15,7 +15,7 @@
    ├─ UE4SS-settings.ini   ← 推荐配置（见下）
    └─ Mods\
       ├─ mods.txt
-      └─ PBZFog\           ← 本模组
+      └─ Velm\           ← 本模组
 ```
 > ⚠ 注意：UE4SS **v4.0.0 起改了布局**（所有文件都进 `ue4ss\` 子目录，只有 `dwmapi.dll` 留在 exe 同目录）。本包 pin 的是 v3.0.1（旧布局）。若日后升级到 4.x，安装器与 `Mods` 路径要同步调整。
 

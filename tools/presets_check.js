@@ -5,8 +5,8 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
-const CFG = path.join(ROOT, 'lua', 'PBZFog', 'pbz_tweaker.json');
-const PRES = process.argv[2] || path.join(ROOT, 'lua', 'PBZFog', 'pbz_presets.json');
+const CFG = path.join(ROOT, 'lua', 'Velm', 'pbz_tweaker.json');
+const PRES = process.argv[2] || path.join(ROOT, 'lua', 'Velm', 'pbz_presets.json');
 
 const d = JSON.parse(fs.readFileSync(CFG, 'utf8'));
 const params = new Map();

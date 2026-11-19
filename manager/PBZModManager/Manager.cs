@@ -10,10 +10,10 @@ using System.Text.RegularExpressions;
 
 namespace PBZModManager;
 
-// PBZFog 安装/卸载/检测 的核心逻辑（与界面无关，CLI 与 WPF 共用）。
+// Velm 安装/卸载/检测 的核心逻辑（与界面无关，CLI 与 WPF 共用）。
 public static class Manager
 {
-    public const string ModName = "PBZFog";
+    public const string ModName = "Velm";
     private const int AppId = 4115450;
     public static readonly string[] ProxyNames =
         { "dwmapi.dll", "version.dll", "dxgi.dll", "d3d12.dll", "winmm.dll", "dbghelp.dll", "dinput8.dll" };
@@ -116,6 +116,7 @@ public static class Manager
             else throw new Exception("没检测到 UE4SS。请提供自带包（--ue4ss）、先自行安装 UE4SS，或选择「使用已有」。");
 
             Directory.CreateDirectory(modsDir);
+            MigrateLegacy(modsDir, log);
             var backupRoot = Path.Combine(modsDir, $"_backup_pbzmanager_{DateTime.Now:yyyyMMdd-HHmmss}");
             if (Directory.Exists(modDir))
             {
@@ -192,9 +193,9 @@ public static class Manager
         {
             var bak = modsTxt + $".bak-{DateTime.Now:yyyyMMdd-HHmmss}";
             File.Copy(modsTxt, bak, true);
-            var lines = File.ReadAllLines(modsTxt).Where(l => KeyOf(l) != ModName).ToArray();
+            var lines = File.ReadAllLines(modsTxt).Where(l => KeyOf(l) != ModName && KeyOf(l) != "PBZFog").ToArray();
             File.WriteAllLines(modsTxt, lines, new UTF8Encoding(false));
-            log("已从 mods.txt 移除 PBZFog。");
+            log("已从 mods.txt 移除 Velm。");
         }
         log(kept != null
             ? ("卸载完成。你的预设/参数已备份到: " + kept + "（下次安装会自动恢复；UE4SS 保留，按需自行清理）")
@@ -226,14 +227,30 @@ public static class Manager
 
     // ---------------------------------------------------------------- 工具
 
+    private static void MigrateLegacy(string modsDir, Action<string> log)
+    {
+        try
+        {
+            if (ModName == "PBZFog") return;
+            var legacy = Path.Combine(modsDir, "PBZFog");
+            if (!Directory.Exists(legacy)) return;
+            var lb = Path.Combine(modsDir, $"_legacy_PBZFog_{DateTime.Now:yyyyMMdd-HHmmss}");
+            Directory.Move(legacy, lb);
+            log("检测到旧版 PBZFog 目录，已移到 " + lb + "（旧预设/数值可从那里取回）");
+        }
+        catch (Exception ex) { log("迁移旧 PBZFog 目录失败: " + ex.Message); }
+    }
+
     private static void EnsureModsTxt(string modsTxt, string backupRoot, Action<string> log)
     {
         var lines = File.Exists(modsTxt) ? File.ReadAllLines(modsTxt).ToList() : new List<string>();
         if (File.Exists(modsTxt)) { Directory.CreateDirectory(backupRoot); File.Copy(modsTxt, Path.Combine(backupRoot, "mods.txt"), true); }
         var idx = lines.FindIndex(l => KeyOf(l) == ModName);
+        lines.RemoveAll(l => KeyOf(l) == "PBZFog"); // 清理旧版残留行
+        idx = lines.FindIndex(l => KeyOf(l) == ModName);
         if (idx >= 0) lines[idx] = $"{ModName} : 1"; else lines.Add($"{ModName} : 1");
         File.WriteAllLines(modsTxt, lines, new UTF8Encoding(false));
-        log("已在 mods.txt 启用 PBZFog : 1");
+        log("已在 mods.txt 启用 Velm : 1");
     }
 
     public static string KeyOf(string line)
@@ -273,7 +290,7 @@ public static class Manager
         return "?";
     }
 
-    // 找到“mod 本体”根目录：需含 PBZFog\。发行包布局 Manager\ 与 Mod\ 并列，故优先看上级目录。
+    // 找到“mod 本体”根目录：需含 Velm\。发行包布局 Manager\ 与 Mod\ 并列，故优先看上级目录。
     public static string? FindModRoot()
     {
         var bd = AppContext.BaseDirectory.TrimEnd('\\', '/');
@@ -390,7 +407,7 @@ public static class Manager
         return p;
     }
 
-    // 用更新包（任意 zip，内含 PBZFog\Scripts\main.lua）替换游戏内已装模组；游戏在跑则拒绝。
+    // 用更新包（任意 zip，内含 Velm\Scripts\main.lua）替换游戏内已装模组；游戏在跑则拒绝。
     public static void UpdateMod(string gameSteam, string zipPath, Action<string>? log = null)
     {
         if (IsGameRunning()) throw new InvalidOperationException("游戏正在运行，请先关闭游戏再更新模组。");
@@ -401,7 +418,7 @@ public static class Manager
             ZipFile.ExtractToDirectory(zipPath, tmp);
             var src = Directory.GetDirectories(tmp, ModName, SearchOption.AllDirectories)
                 .FirstOrDefault(d => File.Exists(Path.Combine(d, "Scripts", "main.lua")));
-            if (src == null) throw new Exception("更新包里没找到 PBZFog\\Scripts\\main.lua");
+            if (src == null) throw new Exception("更新包里没找到 Velm\\Scripts\\main.lua");
             var dst = InstalledModPath(gameSteam);
             if (Directory.Exists(dst))
             {

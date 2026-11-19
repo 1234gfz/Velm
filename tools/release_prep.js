@@ -1,12 +1,12 @@
 // 发布前参数表整理：删除废弃/有害参数、隐藏偏门参数、重排分组。
 // 幂等：以「原始 pbz_tweaker.json」为输入，输出整理后的参数表。
-// 用法：node tools/release_prep.js   （默认处理 ../lua/PBZFog/pbz_tweaker.json）
+// 用法：node tools/release_prep.js   （默认处理 ../lua/Velm/pbz_tweaker.json）
 'use strict';
 const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
-const CFG = process.argv[2] || path.join(ROOT, 'lua', 'PBZFog', 'pbz_tweaker.json');
+const CFG = process.argv[2] || path.join(ROOT, 'lua', 'Velm', 'pbz_tweaker.json');
 
 // —— 明确删除的参数（废弃/有害）——
 const DROP_KEYS = new Set([

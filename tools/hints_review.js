@@ -7,7 +7,7 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
-const CUR = path.join(ROOT, 'lua', 'PBZFog', 'pbz_tweaker.json');
+const CUR = path.join(ROOT, 'lua', 'Velm', 'pbz_tweaker.json');
 const OLD_REF = process.argv[2] || 'ccd755a';
 const OUT = process.argv[3] || path.join(ROOT, 'docs', 'HINTS_REVIEW.md');
 
@@ -21,7 +21,7 @@ function flatten(data) {
 const cur = flatten(JSON.parse(fs.readFileSync(CUR, 'utf8')));
 let old;
 try {
-  const raw = execFileSync('git', ['-C', ROOT, 'show', `${OLD_REF}:lua/PBZFog/pbz_tweaker.json`], { encoding: 'utf8' });
+  const raw = execFileSync('git', ['-C', ROOT, 'show', `${OLD_REF}:lua/Velm/pbz_tweaker.json`], { encoding: 'utf8' });
   old = flatten(JSON.parse(raw));
 } catch (e) {
   console.error('读取旧版本失败（git show ' + OLD_REF + '）: ' + e.message);

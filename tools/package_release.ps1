@@ -1,10 +1,10 @@
-﻿# 组装可发布的 PBZFog 模组目录。
+﻿# 组装可发布的 Velm 模组目录。
 #
 # 用法：
 #   powershell -ExecutionPolicy Bypass -File tools\package_release.ps1                  # 框架依赖(默认，仅需目标机装 .NET 9 桌面运行时)
 #   powershell -ExecutionPolicy Bypass -File tools\package_release.ps1 -SelfContained    # 自包含(需联网还原 win-x64 运行时包，首次较慢)
 #
-# 产物：<repo>\_release\PBZFog\{Scripts, PBZTweaker, pbz_tweaker.json, pbz_presets.json, VERSION}
+# 产物：<repo>\_release\Velm\{Scripts, PBZTweaker, pbz_tweaker.json, pbz_presets.json, VERSION}
 param(
     [string]$Out = '',
     [switch]$SelfContained,
@@ -13,10 +13,10 @@ param(
 $ErrorActionPreference = 'Stop'
 $repo = Resolve-Path (Join-Path $PSScriptRoot '..')
 if ([string]::IsNullOrWhiteSpace($Out)) { $Out = Join-Path $repo '_release' }
-$stage = Join-Path $Out 'PBZFog'
-$scriptsSrc = Join-Path $repo 'lua\PBZFog\Scripts'
-$jsonSrc    = Join-Path $repo 'lua\PBZFog\pbz_tweaker.json'
-$presetSrc  = Join-Path $repo 'lua\PBZFog\pbz_presets.json'
+$stage = Join-Path $Out 'Velm'
+$scriptsSrc = Join-Path $repo 'lua\Velm\Scripts'
+$jsonSrc    = Join-Path $repo 'lua\Velm\pbz_tweaker.json'
+$presetSrc  = Join-Path $repo 'lua\Velm\pbz_presets.json'
 $panelDir   = Join-Path $repo 'panel\PBZTweaker'
 $panelOut   = Join-Path $stage 'PBZTweaker'
 
@@ -53,4 +53,4 @@ if (-not $ver) { $ver = '0.0.0' }
 $files = Get-ChildItem $stage -Recurse -File
 $mb = [math]::Round((($files | Measure-Object Length -Sum).Sum)/1MB, 1)
 Write-Host "完成: $($files.Count) 个文件, 共 $mb MB" -ForegroundColor Green
-Write-Host "把 _release\PBZFog 整个放到游戏的 <PBZ>\platform\steam\ue4ss\Mods\ 下，并在 mods.txt 加 PBZFog : 1" -ForegroundColor Green
+Write-Host "把 _release\Velm 整个放到游戏的 <PBZ>\platform\steam\ue4ss\Mods\ 下，并在 mods.txt 加 Velm : 1" -ForegroundColor Green

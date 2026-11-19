@@ -27,7 +27,7 @@ powershell -ExecutionPolicy Bypass -File tools\run_tests.ps1
 
 | 检查点 | 期望 |
 |---|---|
-| 加载 | `Starting Lua mod 'PBZFog'` → `[PBZ] PBZFog 已加载（模块化版本）` |
+| 加载 | `Starting Lua mod 'Velm'` → `[PBZ] Velm 已加载（模块化版本）` |
 | 参数表 | `参数表: N 项（雾 M）master=...`，N 与 json 一致 |
 | 雾钩子 | `雾钩子已安装（SetFogDensity=true ...）`、`钩子=true` |
 | pp 下发 | `pp 写 <字段> = ...`，命中若干体积 |
@@ -45,6 +45,6 @@ powershell -ExecutionPolicy Bypass -File tools\run_tests.ps1
 - 面板 `MAX_ATTEMPTS=1` 熔断、心跳 `HEARTBEAT_TTL=120`
 
 ## 4. 发布前
-- `package_release.ps1` 生成 `_release\PBZFog`，结构：`Scripts/ PBZTweaker/ pbz_tweaker.json VERSION`
+- `package_release.ps1` 生成 `_release\Velm`，结构：`Scripts/ PBZTweaker/ pbz_tweaker.json VERSION`
 - 在干净的游戏环境（只装本包）走一遍安装 → F8 → 调参 → 换图 → 退出
 - 校验 `_release` 里无用户个人配置（`pbz_tweaker.json` 应是模板 67 项，`pbz_presets.json` 应为对外预设）

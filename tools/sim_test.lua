@@ -12,12 +12,12 @@
 -- 断言失败不抛异常，全部收集到 SUMMARY 里返回给 node 打印。
 
 -- 离线测试里没有真实脚本路径可推导，显式给 env 一个模组目录（与下面 FILES 的 key 对齐）
-_G.PBZFOG_MODDIR = "E:/SteamLibrary/steamapps/common/PBZ/platform/steam/ue4ss/Mods/PBZFog/"
+_G.PBZFOG_MODDIR = "E:/SteamLibrary/steamapps/common/PBZ/platform/steam/ue4ss/Mods/Velm/"
 
 -- ============================================================ 模拟文件系统
 
 local FILES = {}
-FILES["E:/SteamLibrary/steamapps/common/PBZ/platform/steam/ue4ss/Mods/PBZFog/pbz_tweaker.json"] = CFG_TEXT
+FILES["E:/SteamLibrary/steamapps/common/PBZ/platform/steam/ue4ss/Mods/Velm/pbz_tweaker.json"] = CFG_TEXT
 
 local io_mock = {}
 function io_mock.open(path, mode)
@@ -351,7 +351,7 @@ if STEP then
         "值=" .. tostring(pp1.Settings.__store.VignetteIntensity))
 
     -- ---- 测试 3：延迟持久化 —— 80 步（约 80 秒模拟）不应每次都写盘 ----
-    local ppPath = "E:/SteamLibrary/steamapps/common/PBZ/platform/steam/ue4ss/Mods/PBZFog/pbz_pporig.json"
+    local ppPath = "E:/SteamLibrary/steamapps/common/PBZ/platform/steam/ue4ss/Mods/Velm/pbz_pporig.json"
     local writes = WRITE_COUNT[ppPath] or 0
     check("后处理原值未每轮刷盘", writes <= 25,
         "80 步内写盘 " .. writes .. " 次（老实现每写一个字段就全量刷一次，会是几十上百次）")
@@ -441,7 +441,7 @@ if STEP then
     -- 注意：不能直接改 schema.params() 里的表再 poll(true) —— poll 会从文件重建，改动会被丢掉。
     local schema = require("params.schema")
     local cfgJson = require("core.json")
-    local cfgPath = "E:/SteamLibrary/steamapps/common/PBZ/platform/steam/ue4ss/Mods/PBZFog/pbz_tweaker.json"
+    local cfgPath = "E:/SteamLibrary/steamapps/common/PBZ/platform/steam/ue4ss/Mods/Velm/pbz_tweaker.json"
     local function patchCfg(fn)
         local d = cfgJson.decode(FILES[cfgPath])
         for _, g in ipairs(d.groups or {}) do

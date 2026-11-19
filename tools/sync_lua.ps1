@@ -14,8 +14,8 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $Proj    = Split-Path -Parent $PSScriptRoot
-$SrcRoot = Join-Path $Proj 'lua\PBZFog'
-$DstRoot = 'E:\SteamLibrary\steamapps\common\PBZ\platform\steam\ue4ss\Mods\PBZFog'
+$SrcRoot = Join-Path $Proj 'lua\Velm'
+$DstRoot = 'E:\SteamLibrary\steamapps\common\PBZ\platform\steam\ue4ss\Mods\Velm'
 $SrcJson = Join-Path $SrcRoot 'pbz_tweaker.json'
 $DstJson = Join-Path $DstRoot 'pbz_tweaker.json'
 
