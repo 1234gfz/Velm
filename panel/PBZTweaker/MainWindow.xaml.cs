@@ -243,6 +243,7 @@ namespace PBZTweaker
                 if (MasterLabel != null) MasterLabel.Text = Ui("整体效果");
                 if (PresetApply != null) PresetApply.Content = Ui("应用");
                 if (RevertBtn != null) RevertBtn.Content = Ui("还原");
+                if (HotkeyLabel != null) HotkeyLabel.Text = Ui("快捷键");
                 if (ApplyBtn != null) ApplyBtn.Content = _dirty ? Ui("应用 •") : Ui("应用");
             }
             catch { }
@@ -351,7 +352,7 @@ namespace PBZTweaker
                         hkOk ? 0 : System.Runtime.InteropServices.Marshal.GetLastWin32Error()));
             }
             catch { }
-            try { SubText.Text = _lang == "en" ? (_hotkeyName + " to open") : (_hotkeyName + " 呼出面板"); } catch { }
+            try { SubText.Text = _lang == "en" ? ("Phantom Blade Zero Visual Tweaker · " + _hotkeyName + " to open") : ("影之刃零 画面调参 · " + _hotkeyName + " 呼出面板"); } catch { }
         }
 
         // ------------------------------------------------------------ 托盘图标
@@ -361,6 +362,7 @@ namespace PBZTweaker
         private void InitTrayIcon()
         {
             LoadHotkeyFromJson();
+            InitHotkeyBox();
             try
             {
                 _tray = new System.Windows.Forms.NotifyIcon
@@ -749,7 +751,7 @@ namespace PBZTweaker
             ApplyInteractiveStyle(false);
             if (_gameHwnd == IntPtr.Zero) _gameHwnd = FindGameWindow();
             if (_gameHwnd != IntPtr.Zero) { try { SetForegroundWindow(_gameHwnd); } catch { } }
-            SubText.Text = _lang == "en" ? (_hotkeyName + " to open") : (_hotkeyName + " 呼出面板");
+            SubText.Text = _lang == "en" ? ("Phantom Blade Zero Visual Tweaker · " + _hotkeyName + " to open") : ("影之刃零 画面调参 · " + _hotkeyName + " 呼出面板");
         }
 
         // ------------------------------------------------------------ 热键（可配置，支持 Ctrl/Alt/Shift 组合）
@@ -819,6 +821,32 @@ namespace PBZTweaker
             ParseHotkey("F8", out _hotkeyMods, out _hotkeyVk, out _hotkeyName);
         }
 
+        private bool _loadingHotkey;
+        private void InitHotkeyBox()
+        {
+            try
+            {
+                _loadingHotkey = true;
+                HotkeyBox.Items.Clear();
+                foreach (var p in HotkeyPresets) HotkeyBox.Items.Add(p.label);
+                if (!HotkeyBox.Items.Contains(_hotkeyName)) HotkeyBox.Items.Add(_hotkeyName);
+                HotkeyBox.SelectedItem = _hotkeyName;
+            }
+            catch { }
+            finally { _loadingHotkey = false; }
+        }
+
+        private void Hotkey_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loadingHotkey) return;
+            var name = HotkeyBox.SelectedItem as string;
+            if (string.IsNullOrEmpty(name) || name == _hotkeyName) return;
+            SetHotkey(name);
+            _loadingHotkey = true;
+            try { HotkeyBox.SelectedItem = _hotkeyName; } catch { }
+            _loadingHotkey = false;
+        }
+
         private void SetHotkey(string spec)
         {
             ParseHotkey(spec, out var mods, out var vk, out var name);
@@ -832,7 +860,7 @@ namespace PBZTweaker
             }
             _hotkeyMods = mods; _hotkeyVk = vk; _hotkeyName = name;
             try { if (_root != null) { _root["hotkey"] = JsonValue.Create(name); SaveJson(); } } catch { }
-            try { SubText.Text = _lang == "en" ? (name + " to open") : (name + " 呼出面板"); } catch { }
+            try { SubText.Text = _lang == "en" ? ("Phantom Blade Zero Visual Tweaker · " + name + " to open") : ("影之刃零 画面调参 · " + name + " 呼出面板"); } catch { }
             try { if (_tray != null) _tray.Text = "影之刃零 调参器（" + name + " 呼出面板）"; } catch { }
             LogStartup("热键已设为 " + name);
         }
@@ -1299,8 +1327,8 @@ namespace PBZTweaker
             if (reloadFromDisk || _root == null) LoadJson();
             if (_root == null) return;
 
-            TitleText.Text = _lang == "en" ? "Velm · Tweaker" : (_root["title"]?.GetValue<string>() ?? "Velm · 调参器");
-            if (SubText != null) SubText.Text = _lang == "en" ? "Press F8 to open" : "F8 呼出面板";
+            TitleText.Text = "Velm · 小维";
+            if (SubText != null) SubText.Text = _lang == "en" ? "Phantom Blade Zero Visual Tweaker · F8 to open" : "影之刃零 画面调参 · F8 呼出面板";
             ApplyChrome();
 
             _paramCount = 0;

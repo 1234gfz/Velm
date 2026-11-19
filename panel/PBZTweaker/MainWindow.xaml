@@ -163,11 +163,21 @@
             <Border Grid.Row="0" x:Name="Header" Background="Transparent"
                     Padding="18,14,10,6" MouseLeftButtonDown="Header_MouseDown">
                 <Grid>
-                    <StackPanel>
-                        <TextBlock x:Name="TitleText" Text="影之刃零 · 调参器"
-                                   Foreground="#FFE2DDD5" FontSize="22" FontWeight="SemiBold"/>
-                        <TextBlock x:Name="SubText" Text="F8 呼出面板"
-                                   Foreground="#7C766E" FontSize="17" Margin="0,5,0,0"/>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Width="38" Height="38" CornerRadius="11" Background="#2B2926"
+                                BorderBrush="#5A5145" BorderThickness="1" Margin="0,0,12,0" VerticalAlignment="Center">
+                            <Viewbox Stretch="Uniform" Margin="8,7,8,7">
+                                <Path Stroke="#C0AF93" StrokeThickness="2.4"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                      Data="M 2,2 L 10,17 L 18,2"/>
+                            </Viewbox>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock x:Name="TitleText" Text="Velm · 小维"
+                                       Foreground="#FFE2DDD5" FontSize="22" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="SubText" Text="影之刃零 画面调参 · F8 呼出面板"
+                                       Foreground="#7C766E" FontSize="16" Margin="0,4,0,0"/>
+                        </StackPanel>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
                         <ComboBox x:Name="LangBox" Width="96" Height="30" FontSize="15"
@@ -218,24 +228,37 @@
 
             <Border Grid.Row="3" Padding="18,10,14,14"
                     BorderBrush="#1AFFFFFF" BorderThickness="0,1,0,0">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="Status" Text="就绪" Foreground="#7C766E" FontSize="17"
-                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                    <Button x:Name="RevertBtn" Grid.Column="1" Content="还原" Padding="16,8"
-                            FontSize="18" Background="#35322E" Foreground="#A29B92"
-                            BorderThickness="0" Click="Revert_Click"
-                            ToolTip="丢弃未应用的改动，从磁盘重新读取"/>
-                    <Button x:Name="ApplyBtn" Grid.Column="2" Content="应用" Padding="24,8"
-                            Margin="8,0,0,0" FontSize="18" FontWeight="SemiBold"
-                            Background="#FFD6C4A6" Foreground="#FF201F1E"
-                            BorderThickness="0" Click="Apply_Click"
-                            ToolTip="把当前面板的改动写入参数表，游戏里随即生效"/>
-                </Grid>
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="Status" Text="就绪" Foreground="#7C766E" FontSize="17"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                        <Button x:Name="RevertBtn" Grid.Column="1" Content="还原" Padding="16,8"
+                                FontSize="18" Background="#35322E" Foreground="#A29B92"
+                                BorderThickness="0" Click="Revert_Click"
+                                ToolTip="丢弃未应用的改动，从磁盘重新读取"/>
+                        <Button x:Name="ApplyBtn" Grid.Column="2" Content="应用" Padding="24,8"
+                                Margin="8,0,0,0" FontSize="18" FontWeight="SemiBold"
+                                Background="#FFD6C4A6" Foreground="#FF201F1E"
+                                BorderThickness="0" Click="Apply_Click"
+                                ToolTip="把当前面板的改动写入参数表，游戏里随即生效"/>
+                    </Grid>
+                    <Grid Margin="0,7,2,0">
+                        <TextBlock Text="by 不说话真君 · Velm 小维" HorizontalAlignment="Left"
+                                   VerticalAlignment="Center" FontSize="12" Foreground="#5A554E" Opacity="0.75"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock x:Name="HotkeyLabel" Text="快捷键" FontSize="12" Foreground="#6E6960"
+                                       VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <ComboBox x:Name="HotkeyBox" Width="108" Height="26" FontSize="13"
+                                      VerticalAlignment="Center" SelectionChanged="Hotkey_Changed"
+                                      ToolTip="呼出面板的快捷键（改了立即生效并保存）"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
             </Border>
         </Grid>
     </Border>
