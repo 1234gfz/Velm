@@ -64,7 +64,7 @@ if ($WithUE4SS) {
         $inner = Join-Path $v 'ue4ss'
         if (Test-Path $inner) { robocopy $inner (Join-Path $mod 'ue4ss') /E /NFL /NDL /NJH /NJS /NP | Out-Null }
         else { robocopy $v (Join-Path $mod 'ue4ss') /E /NFL /NDL /NJH /NJS /NP | Out-Null }
-        $proxy = Join-Path $v 'dwmapi.dll'
+        $proxy = Join-Path (Split-Path $v -Parent) 'dwmapi.dll'
         if (Test-Path $proxy) { Copy-Item $proxy (Join-Path $mod 'dwmapi.dll') -Force }
     } else {
         Write-Host "警告: 没找到 vendor\ue4ss，跳过 UE4SS（先跑 tools\fetch_ue4ss.ps1）" -ForegroundColor Yellow
