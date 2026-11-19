@@ -108,9 +108,10 @@ namespace PBZTweaker
 
         private static string ResolveJsonPath()
         {
+            // 兼容旧的显式覆盖文件（一般用不到）
             try
             {
-                var side = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "pbz_path.txt");
+                var side = Path.Combine(AppContext.BaseDirectory, "pbz_path.txt");
                 if (File.Exists(side))
                 {
                     var p = File.ReadAllText(side).Trim();
@@ -118,7 +119,22 @@ namespace PBZTweaker
                 }
             }
             catch { }
-            return @"E:\SteamLibrary\steamapps\common\PBZ\platform\steam\ue4ss\Mods\PBZFog\pbz_tweaker.json";
+
+            // 面板随模组分发：<mod>/PBZTweaker/PBZTweaker.exe，参数表在 <mod>/pbz_tweaker.json
+            try
+            {
+                var baseDir = AppContext.BaseDirectory;
+                var candidates = new[]
+                {
+                    Path.GetFullPath(Path.Combine(baseDir, "..", "pbz_tweaker.json")),  // <mod>/pbz_tweaker.json
+                    Path.GetFullPath(Path.Combine(baseDir, "pbz_tweaker.json")),       // 同目录（兼容）
+                    Path.GetFullPath(Path.Combine(baseDir, "..", "..", "pbz_tweaker.json")),
+                };
+                foreach (var c in candidates) if (File.Exists(c)) return c;
+                return candidates[0];
+            }
+            catch { }
+            return Path.Combine(AppContext.BaseDirectory, "pbz_tweaker.json");
         }
 
         public MainWindow()
@@ -569,7 +585,7 @@ namespace PBZTweaker
         private void ApplyAppParams()
         {
             if (_root?["groups"] is not JsonArray groups) return;
-            if (!MasterOn()) return;        // 总开关关着就什么都不下发
+            // 分辨率/窗口类参数不受右上角总开关影响：单独作用，方便 A/B 对比时不闪屏。
             foreach (var g in groups)
             {
                 if (g?["parameters"] is not JsonArray ps) continue;
@@ -724,7 +740,8 @@ namespace PBZTweaker
                 _dirty = false;
                 ApplyBtn.Content = "应用";
                 Status.Text = on ? "整体效果已开启" : "整体效果已关闭 · 全部回到游戏原版（数值都留着）";
-                if (on) { ApplyAppParams(); TakeFocusBack(); } else RestoreDisplayMode();
+                // 分辨率/窗口不跟总开关联动：避免对比效果时窗口反复重建、屏幕黑一下。
+                if (!on) { /* 不改显示模式 */ }
             }
         }
 
@@ -929,6 +946,7 @@ namespace PBZTweaker
                 foreach (var pnode in ps)
                 {
                     if (pnode is not JsonObject p) continue;
+                    if (GetBool(p, "advanced", false)) continue;   // 进阶参数默认隐藏
                     var sub = p["sub"]?.GetValue<string>() ?? "";
                     if (sub != lastSub)
                     {
@@ -938,7 +956,8 @@ namespace PBZTweaker
                         {
                             int cnt = 0;
                             foreach (var q in ps)
-                                if (q is JsonObject qo && ((qo["sub"]?.GetValue<string>()) ?? "") == sub) cnt++;
+                                if (q is JsonObject qo && !GetBool(qo, "advanced", false)
+                                    && ((qo["sub"]?.GetValue<string>()) ?? "") == sub) cnt++;
                             subHost = new StackPanel();
                             Panel.Children.Add(MakeSubHeader(sub, cnt, subHost));
                             Panel.Children.Add(subHost);
