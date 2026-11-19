@@ -1299,7 +1299,8 @@ namespace PBZTweaker
         {
             var w = new Window
             {
-                Title = title, Width = 380, Height = 160, WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Title = title, Width = 380, SizeToContent = SizeToContent.Height, MinHeight = 180,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this, ResizeMode = ResizeMode.NoResize, Background = Brush(CCard), Foreground = Brush(CText), FontSize = 15
             };
             var sp = new StackPanel { Margin = new Thickness(16) };
