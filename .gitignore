@@ -32,3 +32,4 @@ _deploy_backup/
 *.exe
 _release/
 panel/PBZTweaker/_build_out/
+*.bak-prep
