@@ -1,7 +1,7 @@
 <Window x:Class="PBZTweaker.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="影之刃零 调参器" Width="620" Height="900"
+        Title="Velm 小维 · 调参器" Width="620" Height="900"
         WindowStyle="None" AllowsTransparency="False" Background="#FF201F1E"
         Topmost="True" ShowInTaskbar="False" ResizeMode="NoResize"
         Visibility="Hidden" WindowStartupLocation="Manual"

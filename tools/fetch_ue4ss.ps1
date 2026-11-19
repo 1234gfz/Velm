@@ -40,6 +40,9 @@ if ($Sha256) {
 if (Test-Path $Dest) { Remove-Item $Dest -Recurse -Force }
 New-Item -ItemType Directory -Path $Dest -Force | Out-Null
 Expand-Archive -Path $tmp -DestinationPath $Dest -Force
+# 提升 dwmapi.dll 到 vendor 根，供管理器 InstallBundledUe4ss 复制到游戏根目录
+$proxySrc = Join-Path $Dest 'dwmapi.dll'
+if (Test-Path $proxySrc) { Copy-Item $proxySrc (Join-Path (Split-Path $Dest -Parent) 'dwmapi.dll') -Force }
 Remove-Item $tmp -Force -ErrorAction SilentlyContinue
 
 if ($LicenseUrl) {

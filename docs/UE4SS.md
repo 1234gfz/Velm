@@ -29,11 +29,14 @@
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools\fetch_ue4ss.ps1 `
     -Url "https://github.com/UE4SS-RE/RE-UE4SS/releases/download/v3.0.1/UE4SS_v3.0.1.zip" `
-    -Sha256 "<在发布记录里固定该 zip 的 SHA256>" `
+    -Sha256 "4b47d4bceddd2f561a4e395bfa00924ccfc945af576a2d0c613e6537846c57ec" `
     -Proxy "http://127.0.0.1:7897" `
     -LicenseUrl "https://raw.githubusercontent.com/UE4SS-RE/RE-UE4SS/v3.0.1/LICENSE"
 ```
 下载解压到 `vendor\ue4ss\`（已被 `.gitignore` 忽略，不进 git）。**二进制造包时再放，源码仓库不存二进制。**
+
+> 实测记录（2026-11-19）：官方 `v3.0.1` release 包 `UE4SS_v3.0.1.zip` 大小 5,523,402 字节，SHA256 = `4b47d4bceddd2f561a4e395bfa00924ccfc945af576a2d0c613e6537846c57ec`，内含 `UE4SS.dll`(16,263,680B)、`dwmapi.dll`(58,368B)、`UE4SS-settings.ini`、`Mods\`。
+> 注意：作者本机验证所用的是 `v3.0.1 Beta #0 / Git SHA f885e8d2` 构建（`UE4SS.dll` 20,698,112B，与官方 release 包不同体积，属不同构建）。公开包默认附带**官方 v3.0.1 release**；若个别环境有兼容问题，管理器支持「使用我已安装的 UE4SS」改用你本机能用的那份。
 
 ## 代理 DLL 冲突检测
 UE4SS 的 `dwmapi.dll` 常与 ReShade 的 `dxgi.dll`、DLSS 帧生成的 `version.dll` 等注入代理冲突。安装前用：
