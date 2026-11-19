@@ -342,14 +342,6 @@ local function writeOne(p, v, nm)
         end
     end
 
-    if field == "LumenSkylightLeaking" and saved[nm] then
-        local rec = saved[nm]
-        local cur0
-        pcall(function() cur0 = s[field] end)
-        log.once("diag:w:" .. tostring(nm), string.format("写诊断 skyleak 原值=%s 写入=%s 当前=%s ov原=%s",
-            tostring(type(rec.v)=="number" and rec.v or rec.v), tostring(val), tostring(cur0), tostring(rec.b)))
-    end
-
     local ok
     if isColor then
         ok = pcall(function()
@@ -522,7 +514,6 @@ function pp.revertField(field, force)
     if not saved then return end
     local restored = 0
     local dead = false
-    local diagSk = false
     for _, v in ipairs(vols or {}) do
         if not ue.usable(v) then dead = true; break end
         local nm = nameOf(v)
@@ -530,13 +521,6 @@ function pp.revertField(field, force)
         if rec then
             local okS, s = pcall(function() return v.Settings end)
             if okS and s then
-                if field == "LumenSkylightLeaking" and not diagSk then
-                    diagSk = true
-                    local curB
-                    pcall(function() curB = s[field] end)
-                    log.info(string.format("还原诊断 skyleak 还原前=%s 将写原值=%s ov原=%s",
-                        tostring(curB), tostring(rec.v), tostring(rec.b)))
-                end
                 local okR
                 if rec.c == "RGB" then
                     okR = pcall(function()
