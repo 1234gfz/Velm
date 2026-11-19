@@ -18,6 +18,8 @@ namespace PBZTweaker
 {
     public partial class MainWindow : Window
     {
+        private static readonly string ModDir = ResolveModDir();
+        private static readonly string UserDir = ResolveUserDir();
         private static readonly string JsonPath = ResolveJsonPath();
         private static readonly string PresetPath =
             Path.Combine(Path.GetDirectoryName(JsonPath) ?? ".", "pbz_presets.json");
@@ -26,7 +28,7 @@ namespace PBZTweaker
         private static readonly string UiStatePath =
             Path.Combine(Path.GetDirectoryName(JsonPath) ?? ".", "pbz_ui.json");
         private static readonly string EnLangPath =
-            Path.Combine(Path.GetDirectoryName(JsonPath) ?? ".", "lang", "en.json");
+            Path.Combine(ModDir, "lang", "en.json");
 
         private const double DesignHeight = 800;
         private const double EdgeMargin = 24;
@@ -121,6 +123,23 @@ namespace PBZTweaker
         [StructLayout(LayoutKind.Sequential)]
         private struct RECT { public int Left, Top, Right, Bottom; }
 
+        // 程序目录 = <mod>（面板在 <mod>/PBZTweaker/ 下）；用户数据目录 = <Mods>/_Velm_userdata（与程序分开）
+        private static string ResolveModDir()
+        {
+            try { return Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..")); }
+            catch { return AppContext.BaseDirectory; }
+        }
+        private static string ResolveUserDir()
+        {
+            try
+            {
+                var modDir = ResolveModDir().TrimEnd('\\', '/');
+                var mods = Path.GetDirectoryName(modDir);
+                return Path.Combine(mods ?? modDir, "_Velm_userdata");
+            }
+            catch { return Path.Combine(AppContext.BaseDirectory, "_Velm_userdata"); }
+        }
+
         private static string ResolveJsonPath()
         {
             // 兼容旧的显式覆盖文件（一般用不到）
@@ -135,21 +154,31 @@ namespace PBZTweaker
             }
             catch { }
 
-            // 面板随模组分发：<mod>/PBZTweaker/PBZTweaker.exe，参数表在 <mod>/pbz_tweaker.json
+            // 配置在独立用户数据目录；首次运行若那里还没有，就从模组目录把现有配置/预设迁过去。
             try
             {
-                var baseDir = AppContext.BaseDirectory;
-                var candidates = new[]
+                Directory.CreateDirectory(UserDir);
+                var target = Path.Combine(UserDir, "pbz_tweaker.json");
+                var legacyCfg = Path.Combine(ModDir, "pbz_tweaker.json");
+                if (!File.Exists(target) && File.Exists(legacyCfg))
                 {
-                    Path.GetFullPath(Path.Combine(baseDir, "..", "pbz_tweaker.json")),  // <mod>/pbz_tweaker.json
-                    Path.GetFullPath(Path.Combine(baseDir, "pbz_tweaker.json")),       // 同目录（兼容）
-                    Path.GetFullPath(Path.Combine(baseDir, "..", "..", "pbz_tweaker.json")),
-                };
-                foreach (var c in candidates) if (File.Exists(c)) return c;
-                return candidates[0];
+                    try { File.Copy(legacyCfg, target, false); } catch { }
+                }
+                var uP = Path.Combine(UserDir, "pbz_presets");
+                var mP = Path.Combine(ModDir, "pbz_presets");
+                if (Directory.Exists(mP))
+                {
+                    Directory.CreateDirectory(uP);
+                    foreach (var f in Directory.GetFiles(mP, "*.json"))
+                    {
+                        var dst = Path.Combine(uP, Path.GetFileName(f));
+                        if (!File.Exists(dst)) { try { File.Copy(f, dst); } catch { } }
+                    }
+                }
+                return target;
             }
             catch { }
-            return Path.Combine(AppContext.BaseDirectory, "pbz_tweaker.json");
+            return Path.Combine(UserDir, "pbz_tweaker.json");
         }
 
         // ---------------------------------------------------------- 界面语言（中/英）

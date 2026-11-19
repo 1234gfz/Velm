@@ -39,10 +39,25 @@ if not modDir then
 end
 env.MODDIR = modDir                         -- 以 / 结尾
 
-env.CFG       = env.MODDIR .. "pbz_tweaker.json"
+-- 用户数据（配置/预设）放「模组目录的兄弟目录 _Velm_userdata」，与程序分开：
+-- 升级/修复时整个 Velm 目录会被替换，但用户数据在它外面，永远不受影响。
+local function fileExists(p)
+    local f = io.open(p, "rb"); if f then f:close(); return true end; return false
+end
+do
+    local m = modDir:gsub("[/\\]+$", "")          -- .../Mods/Velm
+    local parent = m:match("^(.*)[/\\][^/\\]+$")   -- .../Mods
+    env.USERDIR = normalizeDir((parent and (parent .. "/") or (modDir .. "../")) .. "_Velm_userdata/")
+end
+
+env.CFG = env.USERDIR .. "pbz_tweaker.json"
+if not fileExists(env.CFG) then
+    local alt = env.MODDIR .. "pbz_tweaker.json"   -- 兼容：用户数据尚未迁移时退回模组内的
+    if fileExists(alt) then env.CFG = alt end
+end
+env.REV       = env.USERDIR .. "pbz_rev.txt"
 env.PPFILE    = env.MODDIR .. "pbz_pporig.json"
 env.HEARTBEAT = env.MODDIR .. "panel_heartbeat.txt"
-env.REV       = env.MODDIR .. "pbz_rev.txt"
 
 -- 面板（WPF）随模组一起分发：Velm/PBZTweaker/PBZTweaker.exe
 env.TWEAKER   = env.MODDIR .. "PBZTweaker/PBZTweaker.exe"

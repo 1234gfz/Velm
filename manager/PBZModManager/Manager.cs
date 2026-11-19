@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
 
@@ -117,6 +118,7 @@ public static class Manager
 
             Directory.CreateDirectory(modsDir);
             MigrateLegacy(modsDir, log);
+            EnsureUserData(modsDir, modDir, log);   // 先把用户配置/预设迁到独立目录，再动程序文件
             var backupRoot = Path.Combine(modsDir, $"_backup_pbzmanager_{DateTime.Now:yyyyMMdd-HHmmss}");
             if (Directory.Exists(modDir))
             {
@@ -126,7 +128,6 @@ public static class Manager
             }
             CopyDir(sourceDir, modDir);
             log($"已复制模组文件（{CountLua(modDir)} 个 Lua）。");
-            RestoreUserData(modsDir, modDir, log);
             EnsureModsTxt(Path.Combine(modsDir, "mods.txt"), backupRoot, log);
             PruneBackups(modsDir, "_backup_pbzmanager_*", 2, log);
             PruneBackups(modsDir, ModName + ".bak-*", 1, log);
@@ -221,27 +222,73 @@ public static class Manager
             : "卸载完成（UE4SS 保留，按需自行清理）。");
     }
 
-    private static void RestoreUserData(string modsDir, string modDir, Action<string> log)
+    // 用户数据（pbz_tweaker.json + pbz_presets\）放到「模组目录的兄弟目录 _Velm_userdata」，
+    // 与程序文件分开——升级/修复时整个 Velm 目录被替换也不影响用户数据。
+    // 首次迁移：从「旧模组目录」和历次备份里，挑 enabled 项最多的那份配置，并从所有来源合并预设。
+    private static void EnsureUserData(string modsDir, string oldModDir, Action<string> log)
     {
         try
         {
             var ud = Path.Combine(modsDir, "_Velm_userdata");
-            var bak = Path.Combine(ud, "pbz_presets.json");
-            if (!File.Exists(bak)) return;
-            var cur = Path.Combine(modDir, "pbz_presets.json");
-            bool empty = !File.Exists(cur);
-            if (!empty)
+            Directory.CreateDirectory(ud);
+            var targetCfg = Path.Combine(ud, "pbz_tweaker.json");
+            bool haveGood = File.Exists(targetCfg) && CountEnabled(targetCfg) > 0;
+            if (!haveGood)
             {
-                var txt = File.ReadAllText(cur).Trim();
-                empty = (txt.Length == 0 || txt == "{}");
+                var cands = new List<string>();
+                void Add(string c) { if (File.Exists(c)) cands.Add(c); }
+                Add(Path.Combine(oldModDir, "pbz_tweaker.json"));
+                foreach (var b in Directory.GetDirectories(modsDir, "_backup_pbzmanager_*").OrderByDescending(x => x))
+                    Add(Path.Combine(b, ModName, "pbz_tweaker.json"));
+                string? best = null; int bestN = -1;
+                foreach (var c in cands) { int n = CountEnabled(c); if (n > bestN) { bestN = n; best = c; } }
+                if (best != null) { try { File.Copy(best, targetCfg, true); log($"用户配置已迁到独立目录（enabled={bestN}）"); } catch { } }
             }
-            if (empty)
+            // 预设：从旧模组目录 + 所有备份 合并（含旧单文件 pbz_presets.json 自动拆成每套一个文件）
+            var udP = Path.Combine(ud, "pbz_presets");
+            Directory.CreateDirectory(udP);
+            var srcs = new List<string> { oldModDir };
+            foreach (var b in Directory.GetDirectories(modsDir, "_backup_pbzmanager_*").OrderByDescending(x => x))
+                srcs.Add(Path.Combine(b, ModName));
+            foreach (var s in srcs)
             {
-                File.Copy(bak, cur, true);
-                log("已从上次备份恢复你的预设 -> " + cur);
+                var pd = Path.Combine(s, "pbz_presets");
+                if (Directory.Exists(pd))
+                    foreach (var f in Directory.GetFiles(pd, "*.json"))
+                    { var dst = Path.Combine(udP, Path.GetFileName(f)); if (!File.Exists(dst)) { try { File.Copy(f, dst); } catch { } } }
+                var legacy = Path.Combine(s, "pbz_presets.json");
+                if (File.Exists(legacy))
+                {
+                    try
+                    {
+                        if (JsonNode.Parse(File.ReadAllText(legacy)) is JsonObject root)
+                            foreach (var kv in root)
+                            {
+                                var dst = Path.Combine(udP, kv.Key + ".json");
+                                if (!File.Exists(dst)) File.WriteAllText(dst, kv.Value?.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) ?? "{}");
+                            }
+                    }
+                    catch { }
+                }
             }
         }
-        catch (Exception ex) { log("恢复预设失败: " + ex.Message); }
+        catch (Exception ex) { log("迁移用户数据失败: " + ex.Message); }
+    }
+
+    private static int CountEnabled(string path)
+    {
+        try
+        {
+            if (JsonNode.Parse(File.ReadAllText(path)) is not JsonObject root) return -1;
+            int n = 0;
+            if (root["groups"] is JsonArray gs)
+                foreach (var g in gs)
+                    if (g?["parameters"] is JsonArray ps)
+                        foreach (var p in ps)
+                            if (p?["enabled"]?.GetValue<bool>() == true) n++;
+            return n;
+        }
+        catch { return -1; }
     }
 
     // ---------------------------------------------------------------- 工具
