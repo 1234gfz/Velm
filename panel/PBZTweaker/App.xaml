@@ -1,0 +1,8 @@
+﻿<Application x:Class="PBZTweaker.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:PBZTweaker">
+    <Application.Resources>
+        <SolidColorBrush x:Key="AccentBrush" Color="#FF7FD1AE"/>
+    </Application.Resources>
+</Application>

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <!-- 需要托盘图标（NotifyIcon）。面板本身是隐藏悬浮窗，任务栏里看不到，
+         没有托盘图标的话用户完全不知道它在哪里、热键失效时也没法操作。 -->
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 打开 UseWindowsForms 后 SDK 会自动 global using System.Windows.Forms 和
+         System.Drawing，导致 Application / Button / Brushes / Color 等与 WPF
+         同名类型冲突（CS0104）。这里移除那两条 global using，
+         代码里凡是要用 WinForms / GDI+ 的地方都写全名。 -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+</Project>
