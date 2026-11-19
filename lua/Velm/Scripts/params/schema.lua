@@ -35,11 +35,12 @@ local loaded    = false
 
 -- ---------------------------------------------------------------- 文件时间
 
--- Lua 标准库没有 stat，拿不到 mtime。做法：最多每秒读一次文件，
--- 再用"原文整串比较"判断内容有没有变——没变就不解析。
--- 200ms 的轮询因此变成「每秒读一次 + 变了才解析」，稳定开销几乎为零；
--- 而「改了立刻生效」最多延迟 1 秒，用户感知不到。
+-- 信号/数据分离：面板每次保存把 pbz_rev.txt 的版本号 +1（几字节）。
+-- schema.poll 每秒只读这几字节版本号，没变就直接返回——不读 json、不解析。
+-- 只有版本号变了才读一次整份 json 并解析；旧安装无 rev 文件时退回"读原文比对"。
+-- 稳态开销≈每秒读几字节；改了最多 1 秒内生效。
 local lastCheck = 0
+local lastRev = nil   -- 上次读到的配置版本号（pbz_rev.txt，面板每次保存 +1）
 local CHECK_INTERVAL = 1
 local lastRaw = nil   -- 上次读到的原文，用来"内容没变就不解析"
 
@@ -122,6 +123,21 @@ function schema.poll(force)
     if not force and (now - lastCheck) < CHECK_INTERVAL then return false end
     lastCheck = now
 
+    -- 快速路径：先读几字节的版本号(pbz_rev.txt)，没变就直接返回——不读 json、不解析。
+    -- 面板每次真正保存参数时会把版本号 +1；没变就说明配置没动。
+    local rev = nil
+    do
+        local rf = io.open(env.REV, "rb")
+        if rf then
+            local s = rf:read("*l") or rf:read("*a")
+            rf:close()
+            if s then rev = tonumber(s:match("%d+")) end
+        end
+    end
+    if (not force) and loaded and rev ~= nil and rev == lastRev then
+        return false          -- 版本号没变：常态路径，几乎零开销
+    end
+
     local fh = io.open(env.CFG, "rb")
     if not fh then
         log.once("cfg:missing", "参数表读取失败: " .. env.CFG)
@@ -131,10 +147,12 @@ function schema.poll(force)
     fh:close()
     if raw == nil or raw == "" then return false end
 
-    if (not force) and raw == lastRaw then
-        return false          -- 内容没变，跳过解析（最常见路径）
+    -- 兼容没有 pbz_rev.txt 的旧安装：退回"读原文比对"，避免漏更新。
+    if rev == nil and (not force) and raw == lastRaw then
+        return false
     end
     lastRaw = raw
+    lastRev = rev
 
     local ok, data = pcall(json.decode, raw)
     if not ok or type(data) ~= "table" then

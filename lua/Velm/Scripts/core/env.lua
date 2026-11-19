@@ -42,6 +42,7 @@ env.MODDIR = modDir                         -- 以 / 结尾
 env.CFG       = env.MODDIR .. "pbz_tweaker.json"
 env.PPFILE    = env.MODDIR .. "pbz_pporig.json"
 env.HEARTBEAT = env.MODDIR .. "panel_heartbeat.txt"
+env.REV       = env.MODDIR .. "pbz_rev.txt"
 
 -- 面板（WPF）随模组一起分发：Velm/PBZTweaker/PBZTweaker.exe
 env.TWEAKER   = env.MODDIR .. "PBZTweaker/PBZTweaker.exe"

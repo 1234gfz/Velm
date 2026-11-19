@@ -1177,6 +1177,25 @@ namespace PBZTweaker
             BuildUi();
         }
 
+        // 通知 mod「配置变了」：把 pbz_rev.txt 的版本号 +1。mod 只读这几字节，
+        // 没变就不去读整份 json——这就是"信号文件与配置分离"。
+        private void BumpRev()
+        {
+            try
+            {
+                var dir = Path.GetDirectoryName(JsonPath);
+                if (string.IsNullOrEmpty(dir)) return;
+                var rp = Path.Combine(dir, "pbz_rev.txt");
+                int rev = 0;
+                try { if (File.Exists(rp)) int.TryParse(File.ReadAllText(rp).Trim(), out rev); } catch { }
+                rev = (rev < 0 ? 0 : rev) + 1;
+                var tmp = rp + ".tmp";
+                File.WriteAllText(tmp, rev.ToString());
+                File.Move(tmp, rp, true);
+            }
+            catch { }
+        }
+
         private bool SaveJson()
         {
             if (_root == null) return false;
@@ -1185,8 +1204,12 @@ namespace PBZTweaker
                 var text = _root.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
                 if (text == _lastWrite) return true;
                 _suppressUntil = DateTime.UtcNow.AddMilliseconds(700);
-                File.WriteAllText(JsonPath, text);
+                // 原子写：先写临时文件再改名，避免 mod 读到半截文件。
+                var tmp = JsonPath + ".tmp";
+                File.WriteAllText(tmp, text);
+                File.Move(tmp, JsonPath, true);
                 _lastWrite = text;
+                BumpRev();
                 return true;
             }
             catch (Exception ex)
