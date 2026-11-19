@@ -121,6 +121,7 @@ public static class Manager
             }
             CopyDir(sourceDir, modDir);
             log($"已复制模组文件（{CountLua(modDir)} 个 Lua）。");
+            RestoreUserData(modsDir, modDir, log);
             EnsureModsTxt(Path.Combine(modsDir, "mods.txt"), backupRoot, log);
         }
         log("完成。启动游戏后按 F8 呼出面板。");
@@ -161,7 +162,21 @@ public static class Manager
         var modsDir = Path.Combine(gameSteam, "ue4ss", "Mods");
         var modDir = Path.Combine(modsDir, ModName);
         var modsTxt = Path.Combine(modsDir, "mods.txt");
-        if (Directory.Exists(modDir)) { Directory.Delete(modDir, true); log("已删除模组目录。"); }
+        string kept = null;
+        if (Directory.Exists(modDir))
+        {
+            var ud = Path.Combine(modsDir, "_Velm_userdata");
+            var presets = Path.Combine(modDir, "pbz_presets.json");
+            var tweaker = Path.Combine(modDir, "pbz_tweaker.json");
+            if (File.Exists(presets) || File.Exists(tweaker))
+            {
+                Directory.CreateDirectory(ud);
+                if (File.Exists(presets)) File.Copy(presets, Path.Combine(ud, "pbz_presets.json"), true);
+                if (File.Exists(tweaker)) File.Copy(tweaker, Path.Combine(ud, "pbz_tweaker.json"), true);
+                kept = ud;
+            }
+            Directory.Delete(modDir, true); log("已删除模组目录。");
+        }
         else log("未发现模组目录（可能未安装）。");
         if (File.Exists(modsTxt))
         {
@@ -171,7 +186,32 @@ public static class Manager
             File.WriteAllLines(modsTxt, lines, new UTF8Encoding(false));
             log("已从 mods.txt 移除 PBZFog。");
         }
-        log("卸载完成（UE4SS 与面板/预设保留，按需自行清理）。");
+        log(kept != null
+            ? ("卸载完成。你的预设/参数已备份到: " + kept + "（下次安装会自动恢复；UE4SS 保留，按需自行清理）")
+            : "卸载完成（UE4SS 保留，按需自行清理）。");
+    }
+
+    private static void RestoreUserData(string modsDir, string modDir, Action<string> log)
+    {
+        try
+        {
+            var ud = Path.Combine(modsDir, "_Velm_userdata");
+            var bak = Path.Combine(ud, "pbz_presets.json");
+            if (!File.Exists(bak)) return;
+            var cur = Path.Combine(modDir, "pbz_presets.json");
+            bool empty = !File.Exists(cur);
+            if (!empty)
+            {
+                var txt = File.ReadAllText(cur).Trim();
+                empty = (txt.Length == 0 || txt == "{}");
+            }
+            if (empty)
+            {
+                File.Copy(bak, cur, true);
+                log("已从上次备份恢复你的预设 -> " + cur);
+            }
+        }
+        catch (Exception ex) { log("恢复预设失败: " + ex.Message); }
     }
 
     // ---------------------------------------------------------------- 工具
