@@ -128,8 +128,27 @@ public static class Manager
             log($"已复制模组文件（{CountLua(modDir)} 个 Lua）。");
             RestoreUserData(modsDir, modDir, log);
             EnsureModsTxt(Path.Combine(modsDir, "mods.txt"), backupRoot, log);
+            PruneBackups(modsDir, "_backup_pbzmanager_*", 2, log);
+            PruneBackups(modsDir, ModName + ".bak-*", 1, log);
         }
         log("完成。启动游戏后按 F8 呼出面板。");
+    }
+
+    // 只保留最近 keep 个备份目录（名字里的时间戳可直接按名称排序），其余删除，避免越装越多。
+    private static void PruneBackups(string parentDir, string pattern, int keep, Action<string>? log)
+    {
+        try
+        {
+            var dirs = Directory.GetDirectories(parentDir, pattern)
+                .OrderByDescending(d => Path.GetFileName(d), StringComparer.Ordinal)
+                .ToList();
+            for (int i = keep; i < dirs.Count; i++)
+            {
+                try { Directory.Delete(dirs[i], true); log?.Invoke("清理旧备份: " + Path.GetFileName(dirs[i])); }
+                catch { }
+            }
+        }
+        catch { }
     }
 
     private static void InstallBundledUe4ss(string gameSteam, string vendor, bool forceProxy, Action<string> log)
@@ -429,6 +448,7 @@ public static class Manager
             }
             CopyDir(src, dst);
             log?.Invoke("已更新到：" + dst);
+            try { PruneBackups(Path.GetDirectoryName(dst)!, ModName + ".bak-*", 1, log); } catch { }
         }
         finally { try { Directory.Delete(tmp, true); } catch { } }
     }
