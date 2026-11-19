@@ -380,8 +380,7 @@ namespace PBZTweaker
             RegisterMasterHotkey();
             try
             {
-                var logPath = System.IO.Path.Combine(
-                    System.IO.Path.GetDirectoryName(JsonPath) ?? ".", "panel_hotkey.log");
+                var logPath = System.IO.Path.Combine(ModDir, "panel_hotkey.log");
                 System.IO.File.AppendAllText(logPath,
                     string.Format("{0} hotkey {1} mods=0x{2:X} vk=0x{3:X} register={4} hwnd={5} err={6}\n",
                         DateTime.Now.ToString("HH:mm:ss"), _hotkeyName, _hotkeyMods, _hotkeyVk, hkOk, _hwnd,
@@ -529,8 +528,7 @@ namespace PBZTweaker
         {
             try
             {
-                var p = System.IO.Path.Combine(
-                    System.IO.Path.GetDirectoryName(JsonPath) ?? ".", "startup.log");
+                var p = System.IO.Path.Combine(ModDir, "startup.log");
                 System.IO.File.AppendAllText(p,
                     DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss ") + line + "\n");
             }
@@ -1004,7 +1002,7 @@ namespace PBZTweaker
         {
             try
             {
-                var dir = Path.GetDirectoryName(JsonPath);
+                var dir = ModDir;
                 if (dir == null || !Directory.Exists(dir)) return;
                 _watcher = new FileSystemWatcher(dir, Path.GetFileName(JsonPath))
                 {
@@ -1212,7 +1210,7 @@ namespace PBZTweaker
         {
             try
             {
-                var dir = Path.GetDirectoryName(JsonPath);
+                var dir = ModDir;
                 if (string.IsNullOrEmpty(dir)) return;
                 var rp = Path.Combine(dir, "pbz_rev.txt");
                 int rev = 0;
@@ -2285,7 +2283,7 @@ namespace PBZTweaker
         {
             try
             {
-                var dir = Path.GetDirectoryName(JsonPath);
+                var dir = ModDir;
                 if (dir == null) return;
                 File.WriteAllText(Path.Combine(dir, "panel_heartbeat.txt"),
                     DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString());
@@ -2297,7 +2295,7 @@ namespace PBZTweaker
         {
             try
             {
-                var dir = Path.GetDirectoryName(JsonPath);
+                var dir = ModDir;
                 if (dir == null) return;
                 var hb = Path.Combine(dir, "panel_heartbeat.txt");
                 if (File.Exists(hb)) File.Delete(hb);
