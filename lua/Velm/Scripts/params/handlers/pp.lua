@@ -227,14 +227,15 @@ local function buildQueue()
             -- 这也保证基准永远是游戏真实值，与操作顺序无关。
             local m = p.mode or "abs"
             if lastMode[field] ~= nil and lastMode[field] ~= m then
-                pp.revertField(field)
+                pp.revertField(field, true)
                 markReconcile(0)   -- 用户刚切模式，下一轮立刻重排队
             end
             lastMode[field] = m
 
             if p.enabled == false then
-                -- 关掉的项：有覆盖才还原（还原是用户主动操作，罕见，直接同步做）
-                if applied[field] then pp.revertField(field) end
+                -- 关掉的项（含总开关关闭时全部按 false 下发）：无条件还原到原值，
+                -- 不再依赖 applied 标记——否则换图/重载后 applied 丢了就永远还原不回去。
+                pp.revertField(field, true)
             else
                 local ws = writeState[field]
                 if not ws then ws = {}; writeState[field] = ws end
@@ -491,9 +492,10 @@ loadOrig()
 
 -- 开关关掉 = 撤销覆盖，把每个体积的这个字段写回「第一次覆盖前」的原值。
 -- 同步执行（用户主动关开关才触发，罕见）。
-function pp.revertField(field)
-    if not applied[field] then return end
-    local saved = orig[field] or {}
+function pp.revertField(field, force)
+    if (not force) and not applied[field] then return end
+    local saved = orig[field]
+    if not saved then return end
     local restored = 0
     local dead = false
     for _, v in ipairs(vols or {}) do
