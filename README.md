@@ -17,10 +17,20 @@
 | `PBZModManager` | 安装 / 检测修复 / 卸载 管理器（独立 exe） |
 
 ## 安装
-### 方式 A：管理器（推荐）
-1. 运行 `PBZModManager.exe`，选择游戏目录。
-2. 勾选「使用自带的 UE4SS」或「使用我已装的 UE4SS」。
-3. 点「安装」。管理器会：检测代理 DLL 冲突（`dwmapi.dll`/`version.dll`/`dxgi.dll`）、备份、写入 `ue4ss/Mods/PBZFog`、在 `mods.txt` 加 `PBZFog : 1`。
+### 方式 A：管理器（命令行 MVP，窗口版制作中）
+```powershell
+# 查看状态（自动定位 Steam 库，也可 --game 指定 "…\platform\steam"）
+PBZModManager.exe status
+
+# 安装：用自带 UE4SS（--ue4ss 指向解压目录，含 ue4ss\UE4SS.dll 与 dwmapi.dll）
+PBZModManager.exe install --ue4ss "…\ue4ss自带包"
+# 或：使用你已装的 UE4SS
+PBZModManager.exe install --use-own-ue4ss
+
+# 卸载
+PBZModManager.exe uninstall
+```
+管理器会：检测代理 DLL 冲突（`dwmapi.dll`/`version.dll`/`dxgi.dll`，冲突时需 `--force-proxy` 确认）、改前**自动备份**、拷贝模组、在 `mods.txt` 加 `PBZFog : 1`；**游戏运行时会拒绝改动**。
 
 ### 方式 B：手动
 1. 确保游戏已安装 [UE4SS](https://github.com/UE4SS-RE/RE-UE4SS)（推荐版本见 Releases）。
