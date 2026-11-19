@@ -36,3 +36,4 @@ panel/PBZTweaker/_build_out/
 vendor/
 manager.log
 manager/PBZModManager/_out/
+manager/**/_out/
