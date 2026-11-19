@@ -33,3 +33,5 @@ _deploy_backup/
 _release/
 panel/PBZTweaker/_build_out/
 *.bak-prep
+vendor/
+manager.log
