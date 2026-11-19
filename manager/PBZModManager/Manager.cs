@@ -17,6 +17,10 @@ public static class Manager
     private const int AppId = 4115450;
     public static readonly string[] ProxyNames =
         { "dwmapi.dll", "version.dll", "dxgi.dll", "d3d12.dll", "winmm.dll", "dbghelp.dll", "dinput8.dll" };
+    // 渲染管线类代理（dxgi/d3d12）：会和 UE4SS 的 d3d hook 抢 Present，真可能冲突 → 默认拦。
+    public static readonly string[] RenderProxyNames = { "dxgi.dll", "d3d12.dll" };
+    // 注入时机类代理（version/winmm/dbghelp/dinput8）：常见于帧生成补帧、部分工具，实测可与 UE4SS 共存 → 只提示不拦。
+    public static readonly string[] BenignProxyNames = { "version.dll", "winmm.dll", "dbghelp.dll", "dinput8.dll" };
 
     // ---------------------------------------------------------------- 定位
 
@@ -134,10 +138,16 @@ public static class Manager
         if (!File.Exists(Path.Combine(srcUe4ss, "UE4SS.dll")))
             throw new Exception($"自带 UE4SS 目录里没有 UE4SS.dll: {srcUe4ss}");
 
-        var others = ProxyNames.Where(n => n != "dwmapi.dll" && File.Exists(Path.Combine(gameSteam, n))).ToArray();
-        if (others.Length > 0 && !forceProxy)
-            throw new Exception("检测到其它注入代理 DLL：" + string.Join(", ", others) +
-                "。它们可能与 UE4SS 冲突。确认要装请勾选/加 --force-proxy。");
+        var present = ProxyNames.Where(n => n != "dwmapi.dll" && File.Exists(Path.Combine(gameSteam, n))).ToArray();
+        var risky = present.Where(n => RenderProxyNames.Contains(n)).ToArray();
+        var benign = present.Where(n => BenignProxyNames.Contains(n)).ToArray();
+        var unknown = present.Where(n => !RenderProxyNames.Contains(n) && !BenignProxyNames.Contains(n)).ToArray();
+        if (benign.Length > 0)
+            log("提示：检测到注入代理 " + string.Join(", ", benign) +
+                "（常见于帧生成补帧/ReShade 等，一般可与 UE4SS 共存，继续安装）。");
+        if ((risky.Length > 0 || unknown.Length > 0) && !forceProxy)
+            throw new Exception("检测到渲染管线类/未知注入代理 DLL：" + string.Join(", ", risky.Concat(unknown)) +
+                "。它们会和 UE4SS 抢 D3D 的 Present，可能黑屏/崩溃。确认要装请勾选「允许代理冲突」/ 加 --force-proxy。");
 
         var proxyDst = Path.Combine(gameSteam, "dwmapi.dll");
         if (File.Exists(proxyDst))
