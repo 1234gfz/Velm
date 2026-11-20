@@ -50,3 +50,5 @@ manager/**/obj/
 vendor/dotnet/
 
 _versions/
+
+Velm_v*.zip
