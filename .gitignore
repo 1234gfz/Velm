@@ -48,3 +48,5 @@ manager/**/bin/
 manager/**/obj/
 
 vendor/dotnet/
+
+_versions/
