@@ -31,6 +31,8 @@ public partial class MainWindow : Window
                 UseBundle.IsChecked = true;
                 AppendLog("已检测到随包自带 UE4SS（" + System.IO.Path.Combine(modRoot, "ue4ss") + "），默认使用它。");
             }
+
+            CheckRuntime();
         };
     }
 
@@ -43,8 +45,8 @@ public partial class MainWindow : Window
 
     private string? PickFolder()
     {
-        var dlg = new OpenFolderDialog { Title = "选择目录" };
-        return dlg.ShowDialog() == true ? dlg.FolderName : null;
+        using var dlg = new System.Windows.Forms.FolderBrowserDialog { Description = "选择目录", ShowNewFolderButton = true };
+        return dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK ? dlg.SelectedPath : null;
     }
 
     private string? GameDirOrNull(bool quiet = false)
@@ -199,5 +201,51 @@ public partial class MainWindow : Window
         var url = (_info != null && !string.IsNullOrEmpty(_info.managerUrl)) ? _info.managerUrl : "https://github.com/1234gfz/Velm/releases";
         try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); } catch (Exception ex) { AppendLog("打开失败: " + ex.Message); }
         AppendLog("请在发布页下载新版管理器，替换 Manager\\ 里的 exe/dll（管理器运行中无法自我覆盖）。");
+    }
+
+    // ---------------------------------------------------------------- .NET 9 桌面运行库
+    private void CheckRuntime()
+    {
+        bool ok = Manager.DesktopRuntime9Installed();
+        try
+        {
+            if (ok)
+            {
+                RuntimeBanner.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                RuntimeBanner.Visibility = Visibility.Visible;
+                var inst = Manager.FindBundledRuntimeInstaller();
+                RuntimeBannerText.Text = inst != null
+                    ? "本机缺少 .NET 9 桌面运行库（F8 调参面板需要它）。点右侧「安装 .NET 9 运行库」，按提示允许管理员权限即可；装好后重新打开本安装器。"
+                    : "本机缺少 .NET 9 桌面运行库（F8 调参面板需要它）。请点「官网下载」安装 Desktop Runtime 9 (x64)。";
+                InstallRuntimeBtn.IsEnabled = inst != null;
+            }
+        }
+        catch { }
+        AppendLog(ok ? ".NET 9 桌面运行库：已安装" : ".NET 9 桌面运行库：未安装");
+    }
+
+    private void InstallRuntime_Click(object s, RoutedEventArgs e)
+    {
+        var inst = Manager.FindBundledRuntimeInstaller();
+        if (inst == null) { AppendLog("未找到随包运行库安装器，请用「官网下载」。"); return; }
+        var btn = (System.Windows.Controls.Button)s; btn.IsEnabled = false;
+        Task.Run(() =>
+        {
+            var ok = Manager.RunRuntimeInstaller(inst, AppendLog);
+            Dispatcher.Invoke(() =>
+            {
+                CheckRuntime();
+                AppendLog(ok ? "运行库安装完成，请重新打开本安装器后再安装模组。" : "运行库安装未完成（可能取消了 UAC 或已安装）。");
+            });
+        });
+    }
+
+    private void OpenDotnet_Click(object s, RoutedEventArgs e)
+    {
+        try { Process.Start(new ProcessStartInfo("https://dotnet.microsoft.com/download/dotnet/9.0") { UseShellExecute = true }); }
+        catch (Exception ex) { AppendLog("打开失败: " + ex.Message); }
     }
 }

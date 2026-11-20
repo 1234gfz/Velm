@@ -42,3 +42,9 @@ PBZVisualTweaker_v*.zip
 
 panel/PBZTweaker/_chk/
 _renodx_test/
+
+manager/**/bin/
+
+manager/**/obj/
+
+vendor/dotnet/

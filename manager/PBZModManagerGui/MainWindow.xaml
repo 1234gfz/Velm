@@ -28,6 +28,13 @@
         </Grid>
 
         <StackPanel Grid.Row="2" Margin="0,10,0,0">
+            <Border x:Name="RuntimeBanner" Visibility="Collapsed" Background="#FFF7E0" BorderBrush="#E0C36A" BorderThickness="1" CornerRadius="6" Padding="10" Margin="0,0,0,10">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock x:Name="RuntimeBannerText" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="#7A5B00" MaxWidth="540"/>
+                    <Button x:Name="InstallRuntimeBtn" Content="安装 .NET 9 运行库" Click="InstallRuntime_Click" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                    <Button Content="官网下载" Click="OpenDotnet_Click" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>

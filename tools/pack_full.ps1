@@ -1,4 +1,4 @@
-﻿# 组装“玩家发布包”：Velm\（管理器 + mod 本体 + 说明，管理器与 mod 并列）。
+# 组装“玩家发布包”：Velm\（管理器 + mod 本体 + 说明，管理器与 mod 并列）。
 #   _release\Velm\Manager\PBZModManager.exe       ← 玩家双击这个
 #   _release\Velm\Mod\Velm\ + ue4ss\ + dwmapi.dll  ← mod 本体（管理器自动装到游戏）
 #   _release\Velm\安装说明.txt / LICENSE / VERSION / CHANGELOG.md
@@ -72,12 +72,24 @@ if ($WithUE4SS) {
     }
 }
 
-$files = Get-ChildItem $Out -Recurse -File
-$mb = [math]::Round((($files | Measure-Object Length -Sum).Sum) / 1MB, 1)
+# 随包附带 .NET 9 桌面运行库安装器（管理器检测到缺失时会引导一键安装）
+$dotnetDir = Join-Path $repo 'vendor\dotnet'
+$rt = $null
+if (Test-Path $dotnetDir) { $rt = Get-ChildItem $dotnetDir -Filter 'windowsdesktop-runtime-*-x64.exe' -File -ErrorAction SilentlyContinue | Select-Object -First 1 }
+if ($rt) {
+    Write-Host "打包 .NET 9 桌面运行库安装器 ($([math]::Round($rt.Length/1MB,1)) MB) ..." -ForegroundColor Yellow
+    $rd = Join-Path $Pkg 'Redist'
+    New-Item -ItemType Directory -Force -Path $rd | Out-Null
+    Copy-Item $rt.FullName $rd -Force
+} else {
+    Write-Host "警告: 没找到 vendor\dotnet\windowsdesktop-runtime-*-x64.exe，运行库未随包" -ForegroundColor Yellow
+}
+
+$files = Get-ChildItem $Out -Recurse -File$mb = [math]::Round((($files | Measure-Object Length -Sum).Sum) / 1MB, 1)
 Write-Host "完成: $($files.Count) 文件, $mb MB (包根 $Pkg)" -ForegroundColor Green
 
 if ($Zip) {
-    $zipPath = Join-Path (Split-Path $Out -Parent) ("PBZVisualTweaker_v" + $ver + ".zip")
+    $zipPath = Join-Path (Split-Path $Out -Parent) ("Velm_v" + $ver + ".zip")
     if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     [System.IO.Compression.ZipFile]::CreateFromDirectory($Out, $zipPath, [System.IO.Compression.CompressionLevel]::Optimal, $false)

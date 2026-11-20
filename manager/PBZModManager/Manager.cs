@@ -334,9 +334,84 @@ public static class Manager
         Directory.CreateDirectory(to);
         foreach (var f in Directory.GetFiles(from, "*", SearchOption.AllDirectories))
         {
-            var dst = Path.Combine(to, Path.GetRelativePath(from, f));
+            var rel = f.Substring(from.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var dst = Path.Combine(to, rel);
             Directory.CreateDirectory(Path.GetDirectoryName(dst)!);
             File.Copy(f, dst, true);
+        }
+    }
+
+    // ---------------------------------------------------------------- .NET 9 桌面运行库检测 / 辅助安装
+
+    // 是否已安装 .NET 9 桌面运行库(Microsoft.WindowsDesktop.App 9.x)。面板是 WPF，需要它。
+    public static bool DesktopRuntime9Installed()
+    {
+        try
+        {
+            var roots = new[]
+            {
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "dotnet", "shared", "Microsoft.WindowsDesktop.App"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "dotnet", "shared", "Microsoft.WindowsDesktop.App"),
+            };
+            foreach (var r in roots)
+            {
+                if (!Directory.Exists(r)) continue;
+                foreach (var d in Directory.GetDirectories(r))
+                    if (Path.GetFileName(d).StartsWith("9.")) return true;
+            }
+        }
+        catch { }
+        return false;
+    }
+
+    // 找随包附带的 Desktop Runtime 安装器（Velm\Redist\windowsdesktop-runtime-*-x64.exe）。
+    public static string? FindBundledRuntimeInstaller()
+    {
+        try
+        {
+            var bd = AppContext.BaseDirectory.TrimEnd('\\', '/');
+            var bases = new[]
+            {
+                Path.GetFullPath(Path.Combine(bd, "..")),
+                bd,
+                Path.GetFullPath(Path.Combine(bd, "..", "..")),
+            };
+            foreach (var b in bases)
+            {
+                foreach (var sub in new[] { "Redist", "redist" })
+                {
+                    var d = Path.Combine(b, sub);
+                    if (!Directory.Exists(d)) continue;
+                    var f = Directory.GetFiles(d, "windowsdesktop-runtime-*-x64.exe").FirstOrDefault();
+                    if (f != null) return f;
+                }
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    // 以管理员权限静默安装随包的运行库。返回是否成功启动（不代表安装完成）。
+    public static bool RunRuntimeInstaller(string installerPath, Action<string>? log = null)
+    {
+        try
+        {
+            log?.Invoke("正在安装 .NET 9 桌面运行库（如弹出 UAC 请点“是”）…");
+            var psi = new ProcessStartInfo
+            {
+                FileName = installerPath,
+                Arguments = "/install /quiet /norestart",
+                UseShellExecute = true,
+                Verb = "runas",   // 需要管理员
+            };
+            var p = Process.Start(psi);
+            p?.WaitForExit();
+            return p != null && p.ExitCode == 0;
+        }
+        catch (Exception ex)
+        {
+            log?.Invoke("安装运行库失败: " + ex.Message);
+            return false;
         }
     }
 

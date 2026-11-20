@@ -1,7 +1,7 @@
 {
-  "mod": "0.1.0",
-  "manager": "1.0.0",
+  "mod": "0.1.1",
+  "manager": "1.1.0",
   "modUrl": "https://github.com/1234gfz/Velm/releases/latest/download/Velm.zip",
   "managerUrl": "https://github.com/1234gfz/Velm/releases/latest",
-  "notes": "首发"
+  "notes": "修复未安装 .NET 9 运行库时管理器/面板打不开的问题（随包附带运行库 + 自动检测安装）"
 }

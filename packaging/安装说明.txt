@@ -3,7 +3,8 @@ Velm（小维）· 影之刃零 画面调参模组 —— 安装说明
 
 【中文】
 安装：关闭游戏 → 双击 Manager\PBZModManager.exe → 点「自动检测」→ 点「安装 / 修复」。进游戏后按 F8 呼出面板。
-手动安装（不用管理器）：把 Mod\ue4ss 和 Mod\dwmapi.dll 拷到 游戏\PBZ\platform\steam\；把 Mod\Velm 拷到 …\ue4ss\Mods\；在 mods.txt 加一行 Velm : 1。
+运行库：管理器用的是 Windows 自带的 .NET Framework 4.8，双击就能开。F8 面板需要 .NET 9 桌面运行库——**安装包已自带**（Redist\ 里），管理器检测到缺失会提示你点「安装 .NET 9 运行库」一键装好（需允许管理员权限）。所以一般你什么都不用单独装。
+手动安装（不用管理器）：把 Mod\ue4ss 和 Mod\dwmapi.dll 拷到 游戏\PBZ\platform\steam\；把 Mod\Velm 拷到 …\ue4ss\Mods\；在 mods.txt 加一行 Velm : 1。（此时若没装 .NET 9 运行库，需自行装一下才能开面板。）
 卸载：管理器点「卸载」，或删掉 Mods\Velm 并从 mods.txt 去掉 Velm。
 注意：游戏目录若已有 version.dll / dxgi.dll 等注入代理，管理器会提示冲突，确认可共存再继续。本模组只读写单机画面参数，不含游戏资源、不破解；MIT 许可。
 更新：管理器点「检查更新」（国内可在旁边填代理 http://127.0.0.1:7897）；有新版到发布页下载新包覆盖安装：https://github.com/1234gfz/Velm/releases
@@ -11,7 +12,8 @@ Velm（小维）· 影之刃零 画面调参模组 —— 安装说明
 
 【English】
 Install: close the game -> run Manager\PBZModManager.exe -> click "Auto-detect" -> click "Install / Repair". Press F8 in game to open the panel.
-Manual install: copy Mod\ue4ss and Mod\dwmapi.dll into <game>\PBZ\platform\steam\; copy Mod\Velm into ...\ue4ss\Mods\; add a line "Velm : 1" to mods.txt.
+Runtime: the manager runs on Windows' built-in .NET Framework 4.8, so it opens by just double-clicking. The F8 panel needs the .NET 9 Desktop Runtime - it is BUNDLED in the package (under Redist\). If the manager detects it's missing, click "Install .NET 9 runtime" and approve the admin prompt. Normally you don't need to install anything yourself.
+Manual install: copy Mod\ue4ss and Mod\dwmapi.dll into <game>\PBZ\platform\steam\; copy Mod\Velm into ...\ue4ss\Mods\; add a line "Velm : 1" to mods.txt. (In this case, install the .NET 9 Desktop Runtime yourself to use the panel.)
 Uninstall: use the manager's "Uninstall", or delete Mods\Velm and remove the Velm line from mods.txt.
 Notes: if the game folder already has inject proxies like version.dll / dxgi.dll, the manager warns about conflicts; confirm they can coexist first. This mod only touches single-player visual parameters, contains no game assets and does no cracking; MIT licensed.
 Update: click "Check update" in the manager (in China you may fill in a proxy such as http://127.0.0.1:7897); when newer, download the new package and reinstall: https://github.com/1234gfz/Velm/releases
