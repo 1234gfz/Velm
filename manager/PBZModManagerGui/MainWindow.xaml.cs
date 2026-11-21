@@ -7,7 +7,6 @@ namespace PBZModManagerGui;
 
 public partial class MainWindow : Window
 {
-    private Manager.UpdateInfo? _info;
 
     public MainWindow()
     {
@@ -22,6 +21,19 @@ public partial class MainWindow : Window
             Title = $"Velm 小维 · 安装器    管理器 v{mv} / 随包模组 v{pv}";
             AppendLog($"版本：管理器 v{mv}，随包模组 v{pv}");
             if (g != null) AppendLog("游戏内已装模组：" + Manager.InstalledModVersion(g));
+            try
+            {
+                VerInfo.Text = $"游戏内 v{(g != null ? Manager.InstalledModVersion(g) : "?")} / 随包 v{pv}";
+                if (g != null)
+                {
+                    var iv = Manager.InstalledModVersion(g);
+                    if (!string.IsNullOrEmpty(iv) && Manager.CompareVersion(pv, iv) != 0)
+                        AppendLog("游戏内版本与随包不同，点「安装 / 修复」即可更新到随包版本。");
+                    if (Manager.LastRunModLoaded(g) == false)
+                        AppendLog("上次 UE4SS 日志里没发现模组加载：若游戏里 F8 无反应，请改用「使用自带 UE4SS」重新安装。");
+                }
+            }
+            catch { }
 
             // 发行包布局：Manager\ 与 Mod\ 并列；若找到 Mod\ue4ss 就默认用自带 UE4SS
             var modRoot = Manager.FindModRoot();
@@ -141,66 +153,11 @@ public partial class MainWindow : Window
         }
     }
 
-    private void Update_Click(object s, RoutedEventArgs e)
+    private void OpenRelease_Click(object s, RoutedEventArgs e)
     {
-        var btn = (System.Windows.Controls.Button)s; btn.IsEnabled = false;
-        var proxy = ProxyBox.Text?.Trim();
-        AppendLog("== 检查更新 ==");
-        Task.Run(() =>
-        {
-            try
-            {
-                var info = Manager.CheckUpdates(string.IsNullOrWhiteSpace(proxy) ? null : proxy);
-                _info = info;
-                var lm = Manager.LocalManagerVersion(); var pm = Manager.PayloadModVersion();
-                AppendLog($"管理器：本地 v{lm} / 最新 v{info.manager}");
-                AppendLog($"模组：本地 v{pm} / 最新 v{info.mod}");
-                bool modNew = Manager.CompareVersion(pm, info.mod) > 0;
-                bool mgrNew = Manager.CompareVersion(lm, info.manager) > 0;
-                if (!modNew && !mgrNew) AppendLog("已是最新。");
-                if (modNew) AppendLog("有新版模组，可点「一键更新模组」。");
-                if (mgrNew) AppendLog("有新版管理器，点「更新管理器」到发布页手动替换（管理器运行中无法自我覆盖）。");
-                Dispatcher.Invoke(() => { UpdateModBtn.IsEnabled = modNew; MgrUpdateBtn.IsEnabled = mgrNew; });
-            }
-            catch (Exception ex)
-            {
-                AppendLog("检查更新失败: " + ex.Message);
-                AppendLog("（GitHub 直连可能被墙，可填代理再试；或手动打开 https://github.com/1234gfz/Velm/releases）");
-            }
-            finally { Dispatcher.Invoke(() => btn.IsEnabled = true); }
-        });
-    }
-
-    private void UpdateMod_Click(object s, RoutedEventArgs e)
-    {
-        var g = GameDirOrNull(); if (g == null) return;
-        if (Manager.IsGameRunning())
-        {
-            MessageBox.Show("游戏正在运行，请先关闭游戏再更新模组。", "更新模组", MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
-        }
-        var btn = (System.Windows.Controls.Button)s; btn.IsEnabled = false;
-        var proxy = ProxyBox.Text?.Trim();
-        Task.Run(() =>
-        {
-            try
-            {
-                if (_info == null) throw new Exception("请先点「检查更新」。");
-                AppendLog($"== 一键更新模组 -> v{_info.mod} ==");
-                var zip = Manager.DownloadToTemp(_info.modUrl, string.IsNullOrWhiteSpace(proxy) ? null : proxy, AppendLog);
-                Manager.UpdateMod(g, zip, AppendLog);
-                AppendLog($"模组已更新到 v{_info.mod}。");
-            }
-            catch (Exception ex) { AppendLog("更新失败: " + ex.Message); }
-            finally { Dispatcher.Invoke(() => btn.IsEnabled = true); }
-        });
-    }
-
-    private void MgrUpdate_Click(object s, RoutedEventArgs e)
-    {
-        var url = (_info != null && !string.IsNullOrEmpty(_info.managerUrl)) ? _info.managerUrl : "https://github.com/1234gfz/Velm/releases";
+        var url = "https://github.com/1234gfz/Velm/releases";
         try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); } catch (Exception ex) { AppendLog("打开失败: " + ex.Message); }
-        AppendLog("请在发布页下载新版管理器，替换 Manager\\ 里的 exe/dll（管理器运行中无法自我覆盖）。");
+        AppendLog("发布页：" + url + "（要从平台更新也可以，直接下载最新整包覆盖本文件夹即可）");
     }
 
     // ---------------------------------------------------------------- .NET 9 桌面运行库

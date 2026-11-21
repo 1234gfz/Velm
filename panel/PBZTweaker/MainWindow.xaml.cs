@@ -1212,7 +1212,7 @@ namespace PBZTweaker
         {
             try
             {
-                var dir = ModDir;
+                var dir = UserDir;   // 必须与 Lua 的 env.REV(USERDIR.."pbz_rev.txt") 一致
                 if (string.IsNullOrEmpty(dir)) return;
                 var rp = Path.Combine(dir, "pbz_rev.txt");
                 int rev = 0;

@@ -1,7 +1,7 @@
 {
-  "mod": "0.1.1",
-  "manager": "1.1.0",
+  "mod": "0.1.2",
+  "manager": "1.2.0",
   "modUrl": "https://github.com/1234gfz/Velm/releases/latest/download/Velm.zip",
   "managerUrl": "https://github.com/1234gfz/Velm/releases/latest",
-  "notes": "修复未安装 .NET 9 运行库时管理器/面板打不开的问题（随包附带运行库 + 自动检测安装）"
+  "notes": "修复安装会覆盖用户配置；优先使用游戏已有 UE4SS（不覆盖）；面板新增导出诊断；更新逻辑精简"
 }

@@ -108,13 +108,17 @@ public static class Manager
 
         if (!dryRun)
         {
-            if (ue4ssDir != null) InstallBundledUe4ss(gameSteam, ue4ssDir, forceProxy, log);
-            else if (useOwnUe4ss || haveOwn)
+            if (haveOwn)
             {
-                if (!haveOwn) throw new Exception($"指定用已有 UE4SS，但 {ue4ss} 下没有 UE4SS.dll。");
-                log("使用你已安装的 UE4SS。");
+                log("检测到游戏目录已有 UE4SS，直接使用它（不覆盖任何已有文件）。");
             }
-            else throw new Exception("没检测到 UE4SS。请提供自带包（--ue4ss）、先自行安装 UE4SS，或选择「使用已有」。");
+            else if (ue4ssDir != null || useOwnUe4ss)
+            {
+                if (ue4ssDir == null)
+                    throw new Exception($"你选择「使用已有 UE4SS」，但 {ue4ss} 下没有 UE4SS.dll。请改用「使用自带 UE4SS」。");
+                InstallBundledUe4ss(gameSteam, ue4ssDir, forceProxy, log);
+            }
+            else throw new Exception("没检测到 UE4SS，也没有自带包。请用随包自带的 UE4SS 重新安装一次。");
 
             Directory.CreateDirectory(modsDir);
             MigrateLegacy(modsDir, log);
@@ -232,17 +236,14 @@ public static class Manager
             var ud = Path.Combine(modsDir, "_Velm_userdata");
             Directory.CreateDirectory(ud);
             var targetCfg = Path.Combine(ud, "pbz_tweaker.json");
-            bool haveGood = File.Exists(targetCfg) && CountEnabled(targetCfg) > 0;
-            if (!haveGood)
+            if (File.Exists(targetCfg))
             {
-                var cands = new List<string>();
-                void Add(string c) { if (File.Exists(c)) cands.Add(c); }
-                Add(Path.Combine(oldModDir, "pbz_tweaker.json"));
-                foreach (var b in Directory.GetDirectories(modsDir, "_backup_pbzmanager_*").OrderByDescending(x => x))
-                    Add(Path.Combine(b, ModName, "pbz_tweaker.json"));
-                string? best = null; int bestN = -1;
-                foreach (var c in cands) { int n = CountEnabled(c); if (n > bestN) { bestN = n; best = c; } }
-                if (best != null) { try { File.Copy(best, targetCfg, true); log($"用户配置已迁到独立目录（enabled={bestN}）"); } catch { } }
+                log("保留现有用户配置（不覆盖）。");
+            }
+            else
+            {
+                var legacy = Path.Combine(oldModDir, "pbz_tweaker.json");
+                if (File.Exists(legacy)) { try { File.Copy(legacy, targetCfg, false); log("已把旧配置迁到独立用户目录。"); } catch { } }
             }
             // 预设：从旧模组目录 + 所有备份 合并（含旧单文件 pbz_presets.json 自动拆成每套一个文件）
             var udP = Path.Combine(ud, "pbz_presets");
@@ -289,6 +290,19 @@ public static class Manager
             return n;
         }
         catch { return -1; }
+    }
+
+    // 上次运行 UE4SS.log 里是否出现了我们的模组加载行（null=日志不存在，无法判断）
+    public static bool? LastRunModLoaded(string gameSteam)
+    {
+        try
+        {
+            var p = Path.Combine(gameSteam, "ue4ss", "UE4SS.log");
+            if (!File.Exists(p)) return null;
+            var t = File.ReadAllText(p);
+            return t.Contains("Starting Lua mod 'Velm'") || t.Contains("Starting Lua mod \"Velm\"");
+        }
+        catch { return null; }
     }
 
     // ---------------------------------------------------------------- 工具
