@@ -35,13 +35,22 @@ public partial class MainWindow : Window
             }
             catch { }
 
-            // 发行包布局：Manager\ 与 Mod\ 并列；若找到 Mod\ue4ss 就默认用自带 UE4SS
+            // 发行包布局：Manager\ 与 Mod\ 并列。默认策略：游戏已有 UE4SS 就用它的（不勾“使用自带”）；没有才用随包自带。
             var modRoot = Manager.FindModRoot();
+            bool gameHasUe4ss = g != null && System.IO.File.Exists(System.IO.Path.Combine(g, "ue4ss", "UE4SS.dll"));
             if (modRoot != null && System.IO.Directory.Exists(System.IO.Path.Combine(modRoot, "ue4ss")))
             {
                 Ue4ssPath.Text = modRoot;
-                UseBundle.IsChecked = true;
-                AppendLog("已检测到随包自带 UE4SS（" + System.IO.Path.Combine(modRoot, "ue4ss") + "），默认使用它。");
+                if (gameHasUe4ss)
+                {
+                    UseBundle.IsChecked = false;
+                    AppendLog("检测到游戏目录已有 UE4SS，将直接使用它（不覆盖）。只有它加载不了时，才勾「使用自带 UE4SS」重装。");
+                }
+                else
+                {
+                    UseBundle.IsChecked = true;
+                    AppendLog("未检测到游戏已有 UE4SS，将使用随包自带的（" + System.IO.Path.Combine(modRoot, "ue4ss") + "）。");
+                }
             }
 
             CheckRuntime();
