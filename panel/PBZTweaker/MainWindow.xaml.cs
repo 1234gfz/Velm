@@ -2315,5 +2315,129 @@ namespace PBZTweaker
             try { if (_tray != null) { _tray.Visible = false; _tray.Dispose(); _tray = null; } } catch { }
             base.OnClosed(e);
         }
+
+        // ---- 导出诊断日志：把排查所需的一切（版本/路径/配置摘要/rev/进程/日志尾巴）打进一个 txt ----
+        private void ExportDiag_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var dlg = new Microsoft.Win32.SaveFileDialog
+                {
+                    Title = "导出诊断日志",
+                    FileName = "Velm_diag_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".txt",
+                    Filter = "文本文件 (*.txt)|*.txt|所有文件 (*.*)|*.*",
+                    OverwritePrompt = true
+                };
+                try { dlg.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory); } catch { }
+                if (dlg.ShowDialog() != true) return;
+
+                var sb = new System.Text.StringBuilder();
+                void W(string s) => sb.AppendLine(s);
+                void Sec(string s) { sb.AppendLine(); sb.AppendLine("==== " + s + " ===="); }
+
+                W("Velm 小维 · 诊断报告");
+                W("时间     : " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss zzz"));
+                W("面板版本 : " + (System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "?"));
+                W("系统     : " + Environment.OSVersion.VersionString);
+                W("运行时   : .NET " + Environment.Version + "  (64位=" + Environment.Is64BitProcess + ")");
+
+                Sec("路径");
+                W("ModDir   : " + ModDir + "   存在=" + Directory.Exists(ModDir));
+                W("UserDir  : " + UserDir + "   存在=" + Directory.Exists(UserDir));
+                W("JsonPath : " + JsonPath + "   存在=" + File.Exists(JsonPath));
+                W("模组VERSION: " + SafeRead(Path.Combine(ModDir, "VERSION")).Trim());
+
+                Sec("配置摘要");
+                int total = 0, enabled = 0; var enabledKeys = new List<string>();
+                try
+                {
+                    if (_root?["groups"] is JsonArray gs)
+                        foreach (var g in gs)
+                            if (g is JsonObject go && go["parameters"] is JsonArray ps)
+                                foreach (var pn in ps)
+                                    if (pn is JsonObject po && po["key"] is JsonValue kv)
+                                    {
+                                        total++;
+                                        if (po["enabled"] is JsonValue ev && ev.TryGetValue<bool>(out var b) && b) { enabled++; enabledKeys.Add(kv.ToString()); }
+                                    }
+                }
+                catch { }
+                W("master(整体效果): " + (_root?["master"]?.ToString() ?? "?"));
+                W("参数总数 : " + total + "   已启用(enabled=true): " + enabled);
+                W("已启用列表: " + string.Join(", ", enabledKeys));
+                W("json 大小 : " + (File.Exists(JsonPath) ? new FileInfo(JsonPath).Length + " 字节" : "不存在"));
+
+                Sec("rev / 心跳");
+                W("UserDir pbz_rev.txt = " + SafeRead(Path.Combine(UserDir, "pbz_rev.txt")).Trim());
+                W("ModDir  pbz_rev.txt = " + SafeRead(Path.Combine(ModDir, "pbz_rev.txt")).Trim());
+                var hb = Path.Combine(ModDir, "panel_heartbeat.txt");
+                W("心跳文件存在=" + File.Exists(hb) + "  内容=" + SafeRead(hb).Trim());
+
+                Sec("游戏进程 / UE4SS 加载情况");
+                try { W("PBZ.exe 进程数: " + Process.GetProcessesByName("PBZ").Length); } catch { W("PBZ.exe 进程数: 查询失败"); }
+                var ue4ssLog = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ModDir.TrimEnd('\\', '/')) ?? "", "..", "UE4SS.log"));
+                W("UE4SS.log: " + ue4ssLog + "   存在=" + File.Exists(ue4ssLog));
+                var ul = SafeRead(ue4ssLog, 4000000);
+                W("含 Starting Lua mod 'Velm' : " + (ul.Contains("Starting Lua mod 'Velm'") ? "有 ✔" : "没有 ✘ （模组可能根本没被加载）"));
+                W("含 [PBZ] 业务日志          : " + (ul.Contains("[PBZ]") ? "有 ✔" : "没有 ✘"));
+                foreach (var key in new[] { "UE4SS - v", "Fatal Error", "Failed to find", "参数表" })
+                { var ln = FirstLineContaining(ul, key); if (ln != null) W("日志[" + key + "] 首行: " + ln); }
+
+                Sec("mods.txt");
+                var modsTxt = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ModDir.TrimEnd('\\', '/')) ?? "", "mods.txt"));
+                W("路径: " + modsTxt + "   存在=" + File.Exists(modsTxt));
+                W(SafeRead(modsTxt).Trim());
+
+                Sec("目录清单");
+                try { var md = Path.GetDirectoryName(ModDir.TrimEnd('\\', '/')); W("[Mods] " + md); if (md != null) foreach (var d in Directory.GetDirectories(md)) W("  " + Path.GetFileName(d)); } catch { }
+                try { W("[UserDir]"); foreach (var f in Directory.GetFiles(UserDir)) W("  " + Path.GetFileName(f) + "  " + new FileInfo(f).Length + "B  " + File.GetLastWriteTime(f).ToString("yyyy-MM-dd HH:mm:ss")); } catch { }
+                try { var pdir = Path.Combine(UserDir, "pbz_presets"); if (Directory.Exists(pdir)) { W("[pbz_presets]"); foreach (var f in Directory.GetFiles(pdir, "*.json")) W("  " + Path.GetFileName(f)); } } catch { }
+
+                Sec("面板 startup.log (末尾 200 行)");
+                W(Tail(Path.Combine(ModDir, "startup.log"), 200));
+                Sec("panel_hotkey.log (末尾 60 行)");
+                W(Tail(Path.Combine(ModDir, "panel_hotkey.log"), 60));
+                Sec("UE4SS.log (末尾 300 行)");
+                W(Tail(ue4ssLog, 300));
+
+                File.WriteAllText(dlg.FileName, sb.ToString(), new System.Text.UTF8Encoding(false));
+                Status.Text = "已导出诊断: " + dlg.FileName;
+                try { Process.Start(new ProcessStartInfo("explorer.exe", "/select,\"" + dlg.FileName + "\"") { UseShellExecute = true }); } catch { }
+            }
+            catch (Exception ex) { Status.Text = "导出诊断失败: " + ex.Message; }
+        }
+
+        private static string SafeRead(string p, int maxBytes = 500000)
+        {
+            try
+            {
+                if (!File.Exists(p)) return "";
+                using var fs = new FileStream(p, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                int n = (int)Math.Min(fs.Length, maxBytes); var buf = new byte[n]; int off = 0;
+                while (off < n) { int r = fs.Read(buf, off, n - off); if (r <= 0) break; off += r; }
+                return System.Text.Encoding.UTF8.GetString(buf, 0, off);
+            }
+            catch { return ""; }
+        }
+
+        private static string Tail(string p, int lines)
+        {
+            var t = SafeRead(p, 2000000);
+            if (string.IsNullOrEmpty(t)) return "（无）";
+            var arr = t.Replace("\r\n", "\n").Split('\n');
+            if (arr.Length <= lines) return t;
+            return string.Join("\n", arr, arr.Length - lines, lines);
+        }
+
+        private static string? FirstLineContaining(string text, string key)
+        {
+            if (string.IsNullOrEmpty(text)) return null;
+            int i = text.IndexOf(key, StringComparison.OrdinalIgnoreCase);
+            if (i < 0) return null;
+            int s = text.LastIndexOf('\n', Math.Max(0, i - 1)) + 1;
+            int e = text.IndexOf('\n', i);
+            if (e < 0) e = text.Length;
+            return text.Substring(s, Math.Min(e - s, 300)).Trim();
+        }
     }
 }

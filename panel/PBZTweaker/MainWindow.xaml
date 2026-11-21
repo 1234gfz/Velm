@@ -251,6 +251,9 @@
                         <TextBlock Text="by 不说话真君 · Velm 小维" HorizontalAlignment="Left"
                                    VerticalAlignment="Center" FontSize="12" Foreground="#5A554E" Opacity="0.75"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Button x:Name="ExportDiagBtn" Content="导出诊断" FontSize="12" Padding="9,3" Margin="0,0,14,0"
+                                    Background="#35322E" Foreground="#A29B92" BorderThickness="0" Click="ExportDiag_Click"
+                                    ToolTip="收集版本/路径/配置摘要与 UE4SS、面板日志，导出成一个 txt，方便反馈问题"/>
                             <TextBlock x:Name="HotkeyLabel" Text="快捷键" FontSize="12" Foreground="#6E6960"
                                        VerticalAlignment="Center" Margin="0,0,6,0"/>
                             <ComboBox x:Name="HotkeyBox" Width="104" Height="26" FontSize="13"
